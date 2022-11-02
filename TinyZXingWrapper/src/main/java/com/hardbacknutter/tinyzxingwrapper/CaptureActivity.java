@@ -52,8 +52,8 @@ public class CaptureActivity
         public void onError(@NonNull final String info,
                             @NonNull final Exception e) {
             final Intent intent = new Intent()
-                    .putExtra(ScanResult.Failure.REASON, info + "|" + e.getMessage())
-                    .putExtra(ScanResult.Failure.EXCEPTION, e);
+                    .putExtra(ScanIntentResult.Failure.REASON, info + "|" + e.getMessage())
+                    .putExtra(ScanIntentResult.Failure.EXCEPTION, e);
             setResult(Activity.RESULT_CANCELED, intent);
             finish();
         }
@@ -65,8 +65,8 @@ public class CaptureActivity
                             startScanner();
                         } else {
                             final Intent intent = new Intent().putExtra(
-                                    ScanResult.Failure.REASON,
-                                    ScanResult.Failure.REASON_MISSING_CAMERA_PERMISSION);
+                                    ScanIntentResult.Failure.REASON,
+                                    ScanIntentResult.Failure.REASON_MISSING_CAMERA_PERMISSION);
                             setResult(Activity.RESULT_CANCELED, intent);
                             finish();
                         }
@@ -136,8 +136,8 @@ public class CaptureActivity
     private void initTimeoutHandlers() {
         inactivityTimer = new InactivityTimer(this, () -> {
             setResult(Activity.RESULT_CANCELED,
-                    new Intent().putExtra(ScanResult.Failure.REASON,
-                            ScanResult.Failure.REASON_INACTIVITY));
+                    new Intent().putExtra(ScanIntentResult.Failure.REASON,
+                            ScanIntentResult.Failure.REASON_INACTIVITY));
             finish();
         });
         getLifecycle().addObserver(inactivityTimer);
@@ -152,8 +152,8 @@ public class CaptureActivity
         if (hardTimeOutInMs > 0) {
             new Handler().postDelayed(() -> {
                 setResult(Activity.RESULT_CANCELED,
-                        new Intent().putExtra(ScanResult.Failure.REASON,
-                                ScanResult.Failure.REASON_TIMEOUT));
+                        new Intent().putExtra(ScanIntentResult.Failure.REASON,
+                                ScanIntentResult.Failure.REASON_TIMEOUT));
                 finish();
             }, hardTimeOutInMs);
         }

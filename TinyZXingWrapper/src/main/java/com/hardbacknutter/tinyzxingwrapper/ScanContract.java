@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class ScanContract
-        extends ActivityResultContract<ScanContract.Input, Optional<ScanResult>> {
+        extends ActivityResultContract<ScanContract.Input, Optional<ScanIntentResult>> {
 
 
     /**
@@ -24,7 +24,7 @@ public class ScanContract
      * <p>
      * Picks relevant parts of the {@link Result} and adds them as intent extras.
      * Once this intent is delivered, {@link #parseResult(int, Intent)}
-     * will transform it into a user friendly value object {@link ScanResult}.
+     * will transform it into a user friendly value object {@link ScanIntentResult}.
      *
      * @param context             Current context (not used for now)
      * @param rawResult           the ZXing result value object
@@ -40,8 +40,8 @@ public class ScanContract
 
         Intent intent = new Intent()
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-                .putExtra(ScanResult.Success.TEXT, rawResult.getText())
-                .putExtra(ScanResult.Success.FORMAT, rawResult.getBarcodeFormat().toString());
+                .putExtra(ScanIntentResult.Success.TEXT, rawResult.getText())
+                .putExtra(ScanIntentResult.Success.FORMAT, rawResult.getBarcodeFormat().toString());
 
         final Map<ResultMetadataType, ?> metadata = rawResult.getResultMetadata();
         if (metadata != null && csvWithMetadataKeys != null) {
@@ -53,7 +53,7 @@ public class ScanContract
                     .filter(entry -> entry.getValue() != null)
                     .forEach(entry -> {
                         final ResultMetadataType type = entry.getKey();
-                        final String key = ScanResult.Success.META_KEY_PREFIX + type.name();
+                        final String key = ScanIntentResult.Success.META_KEY_PREFIX + type.name();
                         switch (type) {
                             case ORIENTATION:
                             case ISSUE_NUMBER: {
@@ -105,12 +105,12 @@ public class ScanContract
     }
 
     @Override
-    public Optional<ScanResult> parseResult(final int resultCode,
-                                            @Nullable final Intent intent) {
+    public Optional<ScanIntentResult> parseResult(final int resultCode,
+                                                  @Nullable final Intent intent) {
         if (intent == null || resultCode != Activity.RESULT_OK) {
             return Optional.empty();
         } else {
-            return Optional.of(new ScanResult(resultCode, intent));
+            return Optional.of(new ScanIntentResult(resultCode, intent));
         }
     }
 

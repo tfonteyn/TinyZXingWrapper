@@ -72,8 +72,8 @@ public class ScanOptions
      * <p>
      * The returned {@code resultCode} will be Activity.RESULT_CANCELED.
      * The returned {@code intent} will contain the
-     * key {@link ScanResult.Failure#REASON} with
-     * value {@link ScanResult.Failure#REASON_TIMEOUT}.
+     * key {@link ScanIntentResult.Failure#REASON} with
+     * value {@link ScanIntentResult.Failure#REASON_TIMEOUT}.
      *
      * @return this
      */
@@ -88,8 +88,8 @@ public class ScanOptions
      * <p>
      * The returned {@code resultCode} will be Activity.RESULT_CANCELED.
      * The returned {@code intent} will contain the
-     * key {@link ScanResult.Failure#REASON} with
-     * value {@link ScanResult.Failure#REASON_INACTIVITY}.
+     * key {@link ScanIntentResult.Failure#REASON} with
+     * value {@link ScanIntentResult.Failure#REASON_INACTIVITY}.
      *
      * @return this
      */

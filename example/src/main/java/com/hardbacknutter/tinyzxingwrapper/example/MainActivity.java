@@ -10,8 +10,8 @@ import androidx.camera.core.CameraSelector;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.hardbacknutter.tinyzxingwrapper.ScanContract;
+import com.hardbacknutter.tinyzxingwrapper.ScanIntentResult;
 import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
-import com.hardbacknutter.tinyzxingwrapper.ScanResult;
 import com.hardbacknutter.tinyzxingwrapper.DecoderType;
 import com.hardbacknutter.tinyzxingwrapper.example.databinding.ActivityMainBinding;
 
@@ -29,17 +29,17 @@ public class MainActivity
 
                 } else {
                     switch (result.getFailure()) {
-                        case ScanResult.Failure.REASON_MISSING_CAMERA_PERMISSION:
+                        case ScanIntentResult.Failure.REASON_MISSING_CAMERA_PERMISSION:
                             Snackbar.make(vb.getRoot(),
                                     R.string.err_permission,
                                     Snackbar.LENGTH_LONG).show();
                             break;
-                        case ScanResult.Failure.REASON_TIMEOUT:
+                        case ScanIntentResult.Failure.REASON_TIMEOUT:
                             Snackbar.make(vb.getRoot(),
                                     R.string.err_hard_timeout,
                                     Snackbar.LENGTH_LONG).show();
                             break;
-                        case ScanResult.Failure.REASON_INACTIVITY:
+                        case ScanIntentResult.Failure.REASON_INACTIVITY:
                             Snackbar.make(vb.getRoot(),
                                     R.string.err_inactivity,
                                     Snackbar.LENGTH_LONG).show();

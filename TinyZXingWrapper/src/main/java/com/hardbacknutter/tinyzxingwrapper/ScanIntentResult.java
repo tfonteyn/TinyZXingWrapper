@@ -12,16 +12,22 @@ import com.google.zxing.ResultMetadataType;
  * Encapsulates the result of a barcode scan.
  */
 @SuppressWarnings("unused")
-public final class ScanResult {
+public final class ScanIntentResult {
 
     @NonNull
     private final Intent intent;
     private final int resultCode;
 
-    ScanResult(final int resultCode,
-               @NonNull final Intent intent) {
+    ScanIntentResult(final int resultCode,
+                     @NonNull final Intent intent) {
         this.intent = intent;
         this.resultCode = resultCode;
+    }
+
+    @NonNull
+    public static ScanIntentResult parseActivityResult(final int resultCode,
+                                                       @NonNull final Intent intent) {
+        return new ScanIntentResult(resultCode, intent);
     }
 
     /**
@@ -38,7 +44,7 @@ public final class ScanResult {
      * Success.
      *
      * @return name of format, like "QR_CODE", "UPC_A".
-     *         See {@code BarcodeFormat} for more format names.
+     * See {@code BarcodeFormat} for more format names.
      */
     @Nullable
     public String getFormat() {
@@ -73,10 +79,10 @@ public final class ScanResult {
 
     /**
      * Failure.
-     *
+     * <p>
      * The returned value will be one of the predefined REASON_x codes
      * as defined in {@link Failure}, or a generic exception message.
-     *
+     * <p>
      * Do <strong>NOT</strong> rely on the generic exception message however,
      * it's only meant for logging/debug purposes!
      *
@@ -89,10 +95,10 @@ public final class ScanResult {
     @NonNull
     @Override
     public String toString() {
-        return "ScanResult{"
-               + "resultCode=" + resultCode
-               + ", intent=" + intent
-               + '}';
+        return "ScanIntentResult{"
+                + "resultCode=" + resultCode
+                + ", intent=" + intent
+                + '}';
     }
 
     public static final class Success {
@@ -132,7 +138,7 @@ public final class ScanResult {
         /**
          * Key returned upon failure to scan; the value will be one of the
          * predefined reason codes below, or a generic exception message.
-         *
+         * <p>
          * Do NOT rely on the generic exception message,
          * it's only meant for logging/debug purposes!
          */
@@ -162,7 +168,7 @@ public final class ScanResult {
 
         /**
          * A serialized Exception; might be present in addition to a generic "REASON"/message.
-         *
+         * <p>
          * Do NOT rely on this key being present,
          * it's only meant for logging/debug purposes!
          */
