@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application>
+        <activity
+            android:name="com.hardbacknutter.tinyzxingwrapper.CaptureActivity"
+            android:exported="false"
+            android:theme="@style/tzw_Theme.CaptureActivity"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+    </application>
+</manifest>

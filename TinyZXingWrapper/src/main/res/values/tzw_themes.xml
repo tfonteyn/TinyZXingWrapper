@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+
+    <!-- as set on the default CaptureActivity. -->
+    <style name="tzw_Theme.CaptureActivity" parent="tzw_Base.Theme.CaptureActivity">
+        <item name="tzw_status_text_color">@color/tzw_status_text_day</item>
+        <item name="tzw_status_text_background">@android:color/transparent</item>
+    </style>
+
+    <!-- Base theme - used by both Day and Night themes. -->
+    <style name="tzw_Base.Theme.CaptureActivity" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+</resources>

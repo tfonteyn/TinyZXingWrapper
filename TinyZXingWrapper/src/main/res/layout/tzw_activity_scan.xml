@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tzw_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.hardbacknutter.tinyzxingwrapper.CaptureActivity">
+
+    <androidx.camera.view.PreviewView
+        android:id="@id/tzw_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true" />
+
+    <!-- custom attributes (with their defaults) which can be overridden:
+        app:tzw_laser_color="?attr/tzw_laser_color"
+        app:tzw_enable_result_points="true"
+        app:tzw_result_points_color="?attr/tzw_result_points_color"
+
+        If both laser and resul-points are disable, this view displays nothing.
+
+        To work as designed, it MUST overlap the PreviewView exactly.
+    -->
+    <com.hardbacknutter.tinyzxingwrapper.TzwViewfinderView
+        android:id="@id/tzw_viewfinder_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@id/tzw_status_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:background="?attr/tzw_status_text_background"
+        android:textColor="?attr/tzw_status_text_color"
+        tools:text="@string/tzw_status_text" />
+</merge>

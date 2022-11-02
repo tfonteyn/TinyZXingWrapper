@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the default status/prompt -->
+    <string name="tzw_status_text">Place a barcode under the viewfinder to scan it.</string>
+</resources>

@@ -1,0 +1,104 @@
+plugins {
+    id("com.android.library")
+    id("org.jetbrains.kotlin.android")
+}
+
+/*
+    $HOME/.gradle/gradle.properties:
+        TinyZXingWrapper.properties=$HOME/blah/blah/TinyZXingWrapper.properties
+
+    $HOME/blah/blah/TinyZXingWrapper.properties:
+        sign.storeFile=$HOME/blah/blah/keystore.jks
+        sign.storePassword=MyStorePassword
+        sign.keyAlias=MyKeyAlias
+        sign.keyPassword=MyKeyPassword
+ */
+final def props = new Properties()
+if (project.hasProperty("TinyZXingWrapper.properties")) {
+    final def file = new File(project.property("TinyZXingWrapper.properties"))
+    if (file.exists()) {
+        props.load(new FileInputStream(file))
+    }
+}
+
+android {
+    namespace 'com.hardbacknutter.tinyzxingwrapper'
+    compileSdkVersion project.androidTargetSdk
+
+    resourcePrefix "tzw_"
+
+    signingConfigs {
+        release {
+            keyAlias props['sign.keyAlias']
+            keyPassword props['sign.keyPassword']
+            storeFile file(props['sign.storeFile'])
+            storePassword props['sign.storePassword']
+        }
+    }
+
+    defaultConfig {
+        versionCode 1
+        versionName "1.0.0"
+
+        minSdk project.androidMinimumSdk
+        targetSdk project.androidTargetSdk
+
+        signingConfig signingConfigs.release
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            versionNameSuffix "-debug"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = 11
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    api "com.google.zxing:core:${zxing_core_version}"
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
+    implementation("androidx.activity:activity:${androidx_activity_version}")
+    implementation("androidx.annotation:annotation-experimental:1.3.0")
+    implementation("androidx.annotation:annotation:${androidx_annotation_version}")
+    implementation("androidx.appcompat:appcompat:${androidx_appcompat_version}")
+    implementation("androidx.core:core:${androidx_core_version}")
+    implementation("androidx.customview:customview:${androidx_customview_version}")
+    implementation("androidx.fragment:fragment:${androidx_fragment_version}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidx_lifecycle_version}")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:${androidx_lifecycle_version}")
+
+    implementation("androidx.camera:camera-core:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-camera2:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-view:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-extensions:${androidx_camerax_version}")
+
+    // https://github.com/material-components/material-components-android/releases
+    implementation("com.google.android.material:material:${google_material_version}")
+
+    testImplementation("junit:junit:${junit_version}")
+    testImplementation("org.mockito:mockito-core:${mockito_version}")
+}

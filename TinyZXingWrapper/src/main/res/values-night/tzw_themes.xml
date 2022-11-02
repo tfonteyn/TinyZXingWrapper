@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="tzw_Theme.CaptureActivity" parent="tzw_Base.Theme.CaptureActivity">
+        <item name="tzw_status_text_color">@color/tzw_status_text_night</item>
+        <item name="tzw_status_text_background">@android:color/transparent</item>
+    </style>
+</resources>

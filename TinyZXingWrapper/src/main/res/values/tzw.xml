@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- REQUIRED - the "androidx.camera.view.PreviewView" view -->
+    <item name="tzw_preview" type="id" />
+
+    <!-- Optional - CaptureActivity container. -->
+    <item name="tzw_container" type="id" />
+
+    <!-- Optional - CaptureActivity view-finder overlay -->
+    <item name="tzw_viewfinder_view" type="id" />
+    <declare-styleable name="TzwViewfinderView">
+        <attr name="tzw_result_points_color" format="color|reference" />
+        <attr name="tzw_enable_result_points" format="boolean" />
+        <attr name="tzw_laser_color" format="color|reference" />
+    </declare-styleable>
+    <!-- defaults for TzwViewfinderView;  used for both day and night. -->
+    <color name="tzw_result_point">#c0ffbd21</color>
+    <color name="tzw_laser">#ffcc0000</color>
+
+    <!-- Optional - CaptureActivity TextView prompt/status. -->
+    <item name="tzw_status_view" type="id" />
+    <attr name="tzw_status_text_background" format="color|reference" />
+    <attr name="tzw_status_text_color" format="color|reference" />
+    <!-- defaults for tzw_status_text_color -->
+    <color name="tzw_status_text_day">#FF36BFFB</color>
+    <color name="tzw_status_text_night">#FF00B0FF</color>
+
+</resources>
