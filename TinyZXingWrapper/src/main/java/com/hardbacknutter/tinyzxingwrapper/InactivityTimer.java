@@ -29,6 +29,8 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public final class InactivityTimer
         implements LifecycleEventObserver {
 
@@ -44,6 +46,7 @@ public final class InactivityTimer
     @NonNull
     private final Runnable callback;
     private boolean startTimer;
+    private final AtomicBoolean registered = new AtomicBoolean();
     private long inactivityDelayMs = INACTIVITY_DELAY_MS;
     @NonNull
     private final BroadcastReceiver powerStatusReceiver = new BroadcastReceiver() {
@@ -61,7 +64,9 @@ public final class InactivityTimer
                     lowBattery = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) <= 0;
                 }
                 // post on handler to run in main thread
-                handler.post(() -> startTimer(lowBattery));
+                if (registered.get()) {
+                    handler.post(() -> startTimer(lowBattery));
+                }
             }
         }
     };
@@ -97,15 +102,25 @@ public final class InactivityTimer
                                @NonNull final Lifecycle.Event event) {
         switch (event) {
             case ON_RESUME:
-                context.registerReceiver(powerStatusReceiver,
-                        new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                synchronized (registered) {
+                    if (!registered.get()) {
+                        context.registerReceiver(powerStatusReceiver,
+                                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                        registered.set(true);
+                    }
+                }
                 reset();
                 break;
 
             case ON_PAUSE:
             case ON_DESTROY:
                 handler.removeCallbacksAndMessages(null);
-                context.unregisterReceiver(powerStatusReceiver);
+                synchronized (registered) {
+                    if (registered.get()) {
+                        context.unregisterReceiver(powerStatusReceiver);
+                        registered.set(false);
+                    }
+                }
                 break;
         }
     }
