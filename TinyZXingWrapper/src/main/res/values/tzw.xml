@@ -12,6 +12,7 @@
         <attr name="tzw_result_points_color" format="color|reference" />
         <attr name="tzw_enable_result_points" format="boolean" />
         <attr name="tzw_laser_color" format="color|reference" />
+        <attr name="tzw_enable_laser" format="boolean" />
     </declare-styleable>
     <!-- defaults for TzwViewfinderView;  used for both day and night. -->
     <color name="tzw_result_point">#c0ffbd21</color>

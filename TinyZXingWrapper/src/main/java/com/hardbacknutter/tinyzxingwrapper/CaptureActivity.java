@@ -165,7 +165,7 @@ public class CaptureActivity
         scanner.init(getIntent().getExtras());
         getLifecycle().addObserver(scanner);
 
-        if (viewFinderView != null && viewFinderView.isEnableResultPoints()) {
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
             scanner.setResultPointCallback(viewFinderView);
         }
         scanner.startScan(scanResultListener);

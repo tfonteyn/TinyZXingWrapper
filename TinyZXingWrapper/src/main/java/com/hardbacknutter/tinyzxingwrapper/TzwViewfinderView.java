@@ -36,7 +36,8 @@ import java.util.List;
  * Mainly meant as cosmetic feedback to the end-user.
  * <p>
  * This view is overlaid on top of the camera preview.
- * It adds a laser scanner animation and (optional) result points.
+ * It adds a laser scanner animation and result points.
+ * Both can be enabled/disabled - if you disable both, this View does nothing.
  */
 public class TzwViewfinderView
         extends View
@@ -61,12 +62,16 @@ public class TzwViewfinderView
      * Current index into {@link #LASER_COLOR_ALPHA}.
      */
     private int laserColorAlphaIndex;
+    /**
+     * Default to true.
+     */
+    private boolean showLaser;
     @ColorInt
     private int laserColor;
     /**
      * Default to true.
      */
-    private boolean enableResultPoints;
+    private boolean showResultPoints;
     @ColorInt
     private int resultPointColor;
     private int imageWidth;
@@ -82,18 +87,21 @@ public class TzwViewfinderView
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        Resources resources = getResources();
+        final Resources resources = getResources();
         final Resources.Theme theme = getContext().getTheme();
 
         @SuppressWarnings("resource")
-        final TypedArray attributes = getContext()
-                .obtainStyledAttributes(attrs, R.styleable.TzwViewfinderView);
+        final TypedArray attributes = getContext().obtainStyledAttributes(attrs,
+                R.styleable.TzwViewfinderView);
 
+        showLaser = attributes.getBoolean(
+                R.styleable.TzwViewfinderView_tzw_enable_laser,
+                true);
         laserColor = attributes.getColor(
                 R.styleable.TzwViewfinderView_tzw_laser_color,
                 resources.getColor(R.color.tzw_laser, theme));
 
-        enableResultPoints = attributes.getBoolean(
+        showResultPoints = attributes.getBoolean(
                 R.styleable.TzwViewfinderView_tzw_enable_result_points,
                 true);
         resultPointColor = attributes.getColor(
@@ -104,17 +112,27 @@ public class TzwViewfinderView
     }
 
     @SuppressWarnings("unused")
+    public boolean isShowLaser() {
+        return showLaser;
+    }
+
+    @SuppressWarnings("unused")
+    public void setShowLaser(final boolean showLaser) {
+        this.showLaser = showLaser;
+    }
+
+    @SuppressWarnings("unused")
     public void setLaserColor(@ColorInt final int color) {
         this.laserColor = color;
     }
 
-    public boolean isEnableResultPoints() {
-        return enableResultPoints;
+    public boolean isShowResultPoints() {
+        return showResultPoints;
     }
 
     @SuppressWarnings("unused")
-    public void setEnableResultPoints(final boolean visible) {
-        this.enableResultPoints = visible;
+    public void setShowResultPoints(final boolean visible) {
+        this.showResultPoints = visible;
     }
 
     @SuppressWarnings("unused")
@@ -125,17 +143,19 @@ public class TzwViewfinderView
     @Override
     public void onDraw(@NonNull final Canvas canvas) {
 
-        paint.setColor(laserColor);
-        // create some variation just like the real thing
-        paint.setAlpha(LASER_COLOR_ALPHA[laserColorAlphaIndex]);
-        laserColorAlphaIndex = (laserColorAlphaIndex + 1) % LASER_COLOR_ALPHA.length;
+        if (showLaser) {
+            paint.setColor(laserColor);
+            // create some variation just like the real thing
+            paint.setAlpha(LASER_COLOR_ALPHA[laserColorAlphaIndex]);
+            laserColorAlphaIndex = (laserColorAlphaIndex + 1) % LASER_COLOR_ALPHA.length;
 
-        final int middle = getHeight() / 2 + getTop();
-        canvas.drawRect(getLeft() + 2, middle - 1,
-                getRight() - 2, middle + 1,
-                paint);
+            final int middle = getHeight() / 2 + getTop();
+            canvas.drawRect(getLeft() + 2, middle - 1,
+                    getRight() - 2, middle + 1,
+                    paint);
+        }
 
-        if (enableResultPoints) {
+        if (showResultPoints) {
             final float scaleX;
             final float scaleY;
             if (imageWidth > 0 && imageHeight > 0) {
@@ -160,9 +180,10 @@ public class TzwViewfinderView
             }
         }
 
-
-        // Request another update at the animation interval,
-        postInvalidateDelayed(ANIMATION_DELAY_MS);
+        if (showLaser || showResultPoints) {
+            // Request another update at the animation interval,
+            postInvalidateDelayed(ANIMATION_DELAY_MS);
+        }
     }
 
     private void drawResultPoints(@NonNull final Canvas canvas,

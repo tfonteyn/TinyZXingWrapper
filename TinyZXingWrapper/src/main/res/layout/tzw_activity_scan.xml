@@ -13,6 +13,7 @@
         android:keepScreenOn="true" />
 
     <!-- custom attributes (with their defaults) which can be overridden:
+        app:tzw_enable_laser="true"
         app:tzw_laser_color="?attr/tzw_laser_color"
         app:tzw_enable_result_points="true"
         app:tzw_result_points_color="?attr/tzw_result_points_color"
