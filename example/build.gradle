@@ -41,7 +41,10 @@ android {
 }
 
 dependencies {
+    //TODO: add instruction steps here how to include the aar file
+    // directly from a github release download
     implementation project(':TinyZXingWrapper')
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
 
     implementation("androidx.activity:activity:${androidx_activity_version}")

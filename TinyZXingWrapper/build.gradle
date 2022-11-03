@@ -37,8 +37,7 @@ android {
     }
 
     defaultConfig {
-        versionCode 1
-        versionName "1.0.0"
+        buildConfigField("String", "VERSION", "\"${tiny_zxing_wrapper_version}\"")
 
         minSdk project.androidMinimumSdk
         targetSdk project.androidTargetSdk
@@ -50,10 +49,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            debuggable true
-            versionNameSuffix "-debug"
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
@@ -74,7 +69,15 @@ android {
     lint {
         abortOnError false
     }
+
+    libraryVariants.all {
+        variant -> variant.outputs.all {
+            outputFileName = "${project.name}-${variant.name}-${tiny_zxing_wrapper_version}.aar"
+        }
+    }
 }
+
+
 
 dependencies {
     api "com.google.zxing:core:${zxing_core_version}"
