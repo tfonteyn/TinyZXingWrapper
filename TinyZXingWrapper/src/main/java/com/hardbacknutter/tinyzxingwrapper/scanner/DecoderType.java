@@ -1,4 +1,4 @@
-package com.hardbacknutter.tinyzxingwrapper;
+package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 public enum DecoderType {
 

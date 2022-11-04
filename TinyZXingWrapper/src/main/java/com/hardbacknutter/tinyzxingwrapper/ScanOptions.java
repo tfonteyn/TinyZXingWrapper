@@ -7,8 +7,11 @@ import androidx.camera.core.CameraSelector;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.ResultMetadataType;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -18,6 +21,15 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class ScanOptions
         extends ScanIntent {
+
+    private static final Map<BarcodeFamily, String> BARCODE_FAMILY_ENUM_TO_INTENT_VALUE_MAP =
+            Map.of(BarcodeFamily.Product, "PRODUCT_MODE",
+                    BarcodeFamily.OneD, "ONE_D_MODE",
+                    BarcodeFamily.QrCode, "QR_CODE_MODE",
+                    BarcodeFamily.DataMatrix, "DATA_MATRIX_MODE",
+                    BarcodeFamily.Aztec, "AZTEC_MODE",
+                    BarcodeFamily.Pdf417, "PDF417_MODE"
+            );
 
     public ScanOptions() {
     }
@@ -120,7 +132,7 @@ public class ScanOptions
      * @see BarcodeFamily
      */
     public ScanOptions setBarcodeFamily(@NonNull final BarcodeFamily barcodeFamily) {
-        intent.putExtra(OptionKey.CODE_FAMILY, barcodeFamily.getName());
+        intent.putExtra(OptionKey.CODE_FAMILY, BARCODE_FAMILY_ENUM_TO_INTENT_VALUE_MAP.get(barcodeFamily));
         return this;
     }
 

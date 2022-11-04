@@ -12,6 +12,9 @@ import androidx.camera.core.CameraSelector;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 
 import java.util.Objects;
 

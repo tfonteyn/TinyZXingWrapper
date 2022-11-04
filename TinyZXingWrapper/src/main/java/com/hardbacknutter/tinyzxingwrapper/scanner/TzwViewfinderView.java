@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hardbacknutter.tinyzxingwrapper;
+package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -28,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.zxing.ResultPoint;
+import com.hardbacknutter.tinyzxingwrapper.R;
 
 import java.util.ArrayList;
 import java.util.List;

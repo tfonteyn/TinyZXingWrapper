@@ -12,7 +12,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.hardbacknutter.tinyzxingwrapper.ScanContract;
 import com.hardbacknutter.tinyzxingwrapper.ScanIntentResult;
 import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
-import com.hardbacknutter.tinyzxingwrapper.DecoderType;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 import com.hardbacknutter.tinyzxingwrapper.example.databinding.ActivityMainBinding;
 
 public class MainActivity

@@ -7,6 +7,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 
+import com.hardbacknutter.tinyzxingwrapper.R;
+import com.hardbacknutter.tinyzxingwrapper.ScanIntent;
+
 public class CaptureViewModel
         extends ViewModel {
 

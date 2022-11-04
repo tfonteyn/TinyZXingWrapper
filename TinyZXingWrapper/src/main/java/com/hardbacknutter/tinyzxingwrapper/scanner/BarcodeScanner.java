@@ -1,10 +1,11 @@
-package com.hardbacknutter.tinyzxingwrapper;
+package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
@@ -53,63 +54,48 @@ public class BarcodeScanner
     private final Executor mainExecutor;
     @NonNull
     private final LifecycleOwner lifecycleOwner;
-    /**
-     * a debug flag to enable Log.w() messages
-     */
-    public boolean loggingEnabled = false;
-    @Nullable
-    private DecoderFactory decoderFactory;
+    private final Object lock = new Object();
+
+    @NonNull
+    private final DecoderFactory decoderFactory;
     /**
      * Default is {@code null} which lets the device decide.
      * Otherwise one of {@link CameraSelector#LENS_FACING_FRONT} or
      * {@link CameraSelector#LENS_FACING_BACK}
      */
-    private Integer lensFacing;
-    private boolean enableTorch;
+    private final Integer lensFacing;
+    private final boolean enableTorch;
     @Nullable
-    private ResultPointListener resultPointCallback;
+    private final ResultPointListener resultPointCallback;
+    @GuardedBy("lock")
+    @Nullable
+    private ProcessCameraProvider cameraProvider;
 
-    public BarcodeScanner(@NonNull final Context context,
+    private BarcodeScanner(@NonNull final Context context,
                           @NonNull final LifecycleOwner lifecycleOwner,
-                          @NonNull final Preview.SurfaceProvider surfaceProvider) {
-        this.lifecycleOwner = lifecycleOwner;
-        this.surfaceProvider = surfaceProvider;
-
+                          @NonNull final Preview.SurfaceProvider surfaceProvider,
+                           @NonNull final Builder builder) {
         cameraProviderFuture = ProcessCameraProvider.getInstance(context);
         mainExecutor = ContextCompat.getMainExecutor(context);
         cameraExecutor = Executors.newSingleThreadExecutor();
+
+        this.lifecycleOwner = lifecycleOwner;
+        this.surfaceProvider = surfaceProvider;
+
+        lensFacing = builder.lensFacing;
+        enableTorch = builder.enableTorch;
+        decoderFactory = new DefaultDecoderFactory(builder.decoderType, builder.hints);
+
+        resultPointCallback = builder.resultPointCallback;
     }
 
     @SuppressWarnings("unused")
-    public void setLoggingEnabled(final boolean loggingEnabled) {
-        this.loggingEnabled = loggingEnabled;
-    }
-
-    public void init(@Nullable final Bundle args) {
-        if (args != null) {
-            enableTorch = args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false);
-
-            if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
-                lensFacing = args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
-                        CameraSelector.LENS_FACING_BACK);
+    public void cancel() {
+        synchronized (lock) {
+            if (cameraProvider != null) {
+                cameraProvider.unbindAll();
             }
-
-            final Map<DecodeHintType, Object> hints = new HashMap<>();
-            final String family = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
-            if (family != null) {
-                hints.put(DecodeHintType.POSSIBLE_FORMATS, BarcodeFamily.getFor(family));
-            }
-            hints.putAll(parseHints(args));
-
-            final DecoderType decoderType = DecoderType.get(
-                    args.getInt(ScanIntent.OptionKey.DECODER_TYPE, DecoderType.Normal.type));
-
-            decoderFactory = new DefaultDecoderFactory(decoderType, hints);
         }
-    }
-
-    public void setResultPointCallback(@Nullable final ResultPointListener resultPointCallback) {
-        this.resultPointCallback = resultPointCallback;
     }
 
     public void startScan(@NonNull final ScanResultListener resultListener) {
@@ -126,13 +112,7 @@ public class BarcodeScanner
                         }
                         final CameraSelector cameraSelector = csb.build();
 
-                        if (decoderFactory == null) {
-                            decoderFactory = new DefaultDecoderFactory();
-                        }
                         final Decoder decoder = decoderFactory.createDecoder();
-
-                        final ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                        cameraProvider.unbindAll();
 
                         final Preview preview = new Preview.Builder().build();
                         preview.setSurfaceProvider(surfaceProvider);
@@ -213,11 +193,18 @@ public class BarcodeScanner
                             }
                         });
 
-                        final Camera camera = cameraProvider
-                                .bindToLifecycle(lifecycleOwner, cameraSelector,
-                                        preview,
-                                        imageCapture,
-                                        imageAnalyzer);
+                        final Camera camera;
+
+                        synchronized (lock) {
+                            cameraProvider = cameraProviderFuture.get();
+                            cameraProvider.unbindAll();
+
+                            camera = cameraProvider
+                                    .bindToLifecycle(lifecycleOwner, cameraSelector,
+                                            preview,
+                                            imageCapture,
+                                            imageAnalyzer);
+                        }
 
                         camera.getCameraControl().enableTorch(enableTorch);
 
@@ -235,45 +222,6 @@ public class BarcodeScanner
         if (event == Lifecycle.Event.ON_DESTROY) {
             cameraExecutor.shutdown();
         }
-    }
-
-    @NonNull
-    private Map<DecodeHintType, Object> parseHints(@Nullable final Bundle args) {
-        final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
-
-        if (args == null || args.isEmpty()) {
-            return hints;
-        }
-
-        Arrays.stream(DecodeHintType.values())
-                // This one is configured/used internally
-                .filter(hintType -> hintType != DecodeHintType.NEED_RESULT_POINT_CALLBACK)
-                .forEach(hintType -> {
-                    final String hintName = hintType.name();
-                    if (args.containsKey(hintName)) {
-                        if (hintType.getValueType().equals(Void.class)) {
-                            // Void hints are just flags: use the constant
-                            // specified by the DecodeHintType
-                            hints.put(hintType, Boolean.TRUE);
-
-                        } else {
-                            final Object hintData = args.get(hintName);
-                            if (hintType.getValueType().isInstance(hintData)) {
-                                hints.put(hintType, hintData);
-                            } else {
-                                if (loggingEnabled) {
-                                    Log.w(TAG, "Ignoring hint " + hintType
-                                            + " because it is not assignable from " + hintData);
-                                }
-                            }
-                        }
-                    }
-                });
-
-        if (loggingEnabled) {
-            Log.i(TAG, "Hints from the Intent: " + hints);
-        }
-        return hints;
     }
 
     /**
@@ -406,6 +354,129 @@ public class BarcodeScanner
                 }
             }
             return new RawImageData(yuv, width, height);
+        }
+    }
+
+    @SuppressWarnings({"UnusedReturnValue", "unused"})
+    public static class Builder {
+        private final Map<DecodeHintType, Object> hints = new HashMap<>();
+
+        /**
+         * a debug flag to enable Log.w() messages
+         */
+        private boolean loggingEnabled;
+
+        private boolean enableTorch;
+        @Nullable
+        private Integer lensFacing;
+
+        @Nullable
+        private DecoderType decoderType;
+
+        @Nullable
+        private ResultPointListener resultPointCallback;
+
+        @SuppressWarnings("unused")
+        @NonNull
+        public Builder setLoggingEnabled(final boolean loggingEnabled) {
+            this.loggingEnabled = loggingEnabled;
+            return this;
+        }
+
+        @NonNull
+        public Builder setTorch(final boolean enable) {
+            enableTorch = enable;
+            return this;
+        }
+
+        @NonNull
+        public Builder setDecoderType(final int decoderType) {
+            this.decoderType = DecoderType.get(decoderType);
+            return this;
+        }
+
+        @NonNull
+        public Builder setDecoderType(@NonNull final DecoderType decoderType) {
+            this.decoderType = decoderType;
+            return this;
+        }
+
+        @NonNull
+        public Builder setCodeFamily(@Nullable final BarcodeFamily codeFamily) {
+            if (codeFamily != null) {
+                this.hints.put(DecodeHintType.POSSIBLE_FORMATS, codeFamily.formats);
+            } else {
+                this.hints.remove(DecodeHintType.POSSIBLE_FORMATS);
+            }
+            return this;
+        }
+
+        @NonNull
+        public Builder setHints(@Nullable final Bundle hints) {
+            this.hints.putAll(parseHints(hints));
+            return this;
+        }
+
+        @NonNull
+        public Builder  setResultPointCallback(@Nullable final ResultPointListener resultPointCallback) {
+            this.resultPointCallback = resultPointCallback;
+            return this;
+        }
+
+        @NonNull
+        private Map<DecodeHintType, Object> parseHints(@Nullable final Bundle args) {
+            final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+
+            if (args == null || args.isEmpty()) {
+                return hints;
+            }
+
+            Arrays.stream(DecodeHintType.values())
+                    // This one is configured/used internally
+                    .filter(hintType -> hintType != DecodeHintType.NEED_RESULT_POINT_CALLBACK)
+                    .forEach(hintType -> {
+                        final String hintName = hintType.name();
+                        if (args.containsKey(hintName)) {
+                            if (hintType.getValueType().equals(Void.class)) {
+                                // Void hints are just flags: use the constant
+                                // specified by the DecodeHintType
+                                hints.put(hintType, Boolean.TRUE);
+
+                            } else {
+                                final Object hintData = args.get(hintName);
+                                if (hintType.getValueType().isInstance(hintData)) {
+                                    hints.put(hintType, hintData);
+                                } else {
+                                    if (loggingEnabled) {
+                                        Log.w(TAG, "Ignoring hint " + hintType
+                                                + " because it is not assignable from " + hintData);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+            if (loggingEnabled) {
+                Log.i(TAG, "Hints from the Intent: " + hints);
+            }
+            return hints;
+        }
+
+        @NonNull
+        public Builder setCameraLensFacing(final int lensFacing) {
+            if (lensFacing == CameraSelector.LENS_FACING_BACK
+                    || lensFacing == CameraSelector.LENS_FACING_FRONT) {
+                this.lensFacing = lensFacing;
+            } else {
+                this.lensFacing = null;
+            }
+            return this;
+        }
+
+        public BarcodeScanner build(@NonNull final Context context,
+                                    @NonNull final LifecycleOwner lifecycleOwner,
+                                    @NonNull final Preview.SurfaceProvider surfaceProvider) {
+            return new BarcodeScanner(context, lifecycleOwner, surfaceProvider, this);
         }
     }
 }

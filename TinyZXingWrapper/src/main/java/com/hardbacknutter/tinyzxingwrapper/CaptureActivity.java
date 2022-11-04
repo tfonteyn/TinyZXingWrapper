@@ -14,12 +14,19 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.zxing.Result;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
+import com.hardbacknutter.tinyzxingwrapper.scanner.ScanResultListener;
+import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class CaptureActivity
@@ -96,7 +103,9 @@ public class CaptureActivity
         return findViewById(R.id.tzw_viewfinder_view);
     }
 
-    /** Optional - Override as needed. */
+    /**
+     * Optional - Override as needed.
+     */
     @Nullable
     protected TextView getStatusTextView() {
         return findViewById(R.id.tzw_status_view);
@@ -158,16 +167,43 @@ public class CaptureActivity
             }, hardTimeOutInMs);
         }
     }
+    private static final Map<String, BarcodeFamily> BARCODE_FAMILY_INTENT_VALUE_TO_ENUM_MAP =
+            Map.of("PRODUCT_MODE", BarcodeFamily.Product,
+                    "ONE_D_MODE", BarcodeFamily.OneD,
+                    "QR_CODE_MODE", BarcodeFamily.QrCode,
+                    "DATA_MATRIX_MODE", BarcodeFamily.DataMatrix,
+                    "AZTEC_MODE", BarcodeFamily.Aztec,
+                    "PDF417_MODE", BarcodeFamily.Pdf417
+            );
 
     private void startScanner() {
-        final BarcodeScanner scanner = new BarcodeScanner(this, this,
-                previewView.getSurfaceProvider());
-        scanner.init(getIntent().getExtras());
-        getLifecycle().addObserver(scanner);
+        final Bundle args = getIntent().getExtras();
+
+        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
+
+        if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
+            builder.setCameraLensFacing(args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
+                    CameraSelector.LENS_FACING_BACK));
+        }
+
+        final String codeFamily = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
+        if (codeFamily != null) {
+            builder.setCodeFamily(BARCODE_FAMILY_INTENT_VALUE_TO_ENUM_MAP.get(codeFamily));
+        }
+
+        builder.setTorch(args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false))
+                .setHints(args)
+                .setDecoderType(args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
+                        DecoderType.Normal.type));
 
         if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            scanner.setResultPointCallback(viewFinderView);
+            builder.setResultPointCallback(viewFinderView);
         }
+
+        final BarcodeScanner scanner = builder.build(this, this,
+                previewView.getSurfaceProvider());
+
+        getLifecycle().addObserver(scanner);
         scanner.startScan(scanResultListener);
     }
 }

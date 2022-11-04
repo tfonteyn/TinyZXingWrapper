@@ -1,4 +1,4 @@
-package com.hardbacknutter.tinyzxingwrapper;
+package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,12 +20,12 @@ public class DefaultDecoderFactory implements DecoderFactory {
     private final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
 
     public DefaultDecoderFactory() {
-        this(DecoderType.Normal, null);
+        this(null, null);
     }
 
-    public DefaultDecoderFactory(@NonNull final DecoderType type,
+    public DefaultDecoderFactory(@Nullable final DecoderType type,
                                  @Nullable final Map<DecodeHintType, Object> hints) {
-        this.type = type;
+        this.type = type != null ? type : DecoderType.Normal;
         if (hints != null) {
             this.hints.putAll(hints);
         }
