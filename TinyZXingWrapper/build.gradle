@@ -71,7 +71,7 @@ android {
     }
 
     libraryVariants.all {
-        variant -> variant.outputs.all {
+        final variant -> variant.outputs.all {
             outputFileName = "${project.name}-${variant.name}-${tiny_zxing_wrapper_version}.aar"
         }
     }

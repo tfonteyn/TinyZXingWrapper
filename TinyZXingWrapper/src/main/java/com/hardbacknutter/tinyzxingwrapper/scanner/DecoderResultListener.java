@@ -6,20 +6,21 @@ import androidx.annotation.UiThread;
 import com.google.zxing.Result;
 
 /**
- * The {@link BarcodeScanner} will call the methods of this interface when a scan is finished.
+ * The {@link BarcodeScanner} will call the methods of this interface
+ * when a scan is decoded.
  */
-public interface ScanResultListener {
+public interface DecoderResultListener {
 
     /**
-     * Barcode was successfully scanned.
+     * Barcode was successfully decoded.
      **/
     @UiThread
     void onResult(@NonNull Result result);
 
     /**
-     * duh...
+     * Decoding failed.
      */
     @UiThread
-    void onError(final String s,
+    void onError(@NonNull String s,
                  @NonNull Exception e);
 }

@@ -22,13 +22,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.zxing.Result;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultListener;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
-import com.hardbacknutter.tinyzxingwrapper.scanner.ScanResultListener;
 import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
-import java.util.Map;
 import java.util.Objects;
 
+@SuppressWarnings("WeakerAccess")
 public class CaptureActivity
         extends AppCompatActivity {
 
@@ -43,7 +43,7 @@ public class CaptureActivity
     @Nullable
     private InactivityTimer inactivityTimer;
     private CaptureViewModel vm;
-    private final ScanResultListener scanResultListener = new ScanResultListener() {
+    private final DecoderResultListener decoderResultListener = new DecoderResultListener() {
         @Override
         public void onResult(@NonNull final Result result) {
             final String text = result.getText();
@@ -167,43 +167,41 @@ public class CaptureActivity
             }, hardTimeOutInMs);
         }
     }
-    private static final Map<String, BarcodeFamily> BARCODE_FAMILY_INTENT_VALUE_TO_ENUM_MAP =
-            Map.of("PRODUCT_MODE", BarcodeFamily.Product,
-                    "ONE_D_MODE", BarcodeFamily.OneD,
-                    "QR_CODE_MODE", BarcodeFamily.QrCode,
-                    "DATA_MATRIX_MODE", BarcodeFamily.DataMatrix,
-                    "AZTEC_MODE", BarcodeFamily.Aztec,
-                    "PDF417_MODE", BarcodeFamily.Pdf417
-            );
 
     private void startScanner() {
         final Bundle args = getIntent().getExtras();
 
-        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
-
-        if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
-            builder.setCameraLensFacing(args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
-                    CameraSelector.LENS_FACING_BACK));
-        }
-
-        final String codeFamily = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
-        if (codeFamily != null) {
-            builder.setCodeFamily(BARCODE_FAMILY_INTENT_VALUE_TO_ENUM_MAP.get(codeFamily));
-        }
-
-        builder.setTorch(args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false))
-                .setHints(args)
-                .setDecoderType(args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
-                        DecoderType.Normal.type));
-
-        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            builder.setResultPointCallback(viewFinderView);
-        }
-
-        final BarcodeScanner scanner = builder.build(this, this,
-                previewView.getSurfaceProvider());
+        final BarcodeScanner scanner = createScanner(args);
 
         getLifecycle().addObserver(scanner);
-        scanner.startScan(scanResultListener);
+        scanner.startScan(decoderResultListener);
+    }
+
+    private BarcodeScanner createScanner(@Nullable final Bundle args) {
+        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
+
+        if (args != null) {
+            if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
+                builder.setCameraLensFacing(args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
+                        CameraSelector.LENS_FACING_BACK));
+            }
+
+            final String codeFamily = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
+            if (codeFamily != null) {
+                builder.setCodeFamily(BarcodeFamily.valueOf(codeFamily));
+            }
+
+            builder.setTorch(args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false))
+                    .setHints(args)
+                    .setDecoderType(args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
+                            DecoderType.Normal.type));
+        }
+
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
+            builder.setResultPointListener(viewFinderView);
+        }
+
+        return builder.build(this, this,
+                previewView.getSurfaceProvider());
     }
 }

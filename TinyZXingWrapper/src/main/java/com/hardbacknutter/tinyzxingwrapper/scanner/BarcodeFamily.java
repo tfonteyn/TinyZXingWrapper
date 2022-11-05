@@ -39,16 +39,16 @@ public enum BarcodeFamily {
             BarcodeFormat.ITF,
             BarcodeFormat.CODABAR)),
 
-    QrCode( EnumSet.of(BarcodeFormat.QR_CODE)),
+    QrCode(EnumSet.of(BarcodeFormat.QR_CODE)),
 
-    DataMatrix( EnumSet.of(BarcodeFormat.DATA_MATRIX)),
+    DataMatrix(EnumSet.of(BarcodeFormat.DATA_MATRIX)),
 
     Aztec(EnumSet.of(BarcodeFormat.AZTEC)),
 
-    Pdf417( EnumSet.of(BarcodeFormat.PDF_417));
+    Pdf417(EnumSet.of(BarcodeFormat.PDF_417));
 
     @NonNull
-    public final Set<BarcodeFormat> formats;
+    final Set<BarcodeFormat> formats;
 
     BarcodeFamily(@NonNull final Set<BarcodeFormat> formats) {
         this.formats = formats;

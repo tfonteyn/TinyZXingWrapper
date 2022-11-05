@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,7 +25,7 @@ public class ScanContract
      * Once this intent is delivered, {@link #parseResult(int, Intent)}
      * will transform it into a user friendly value object {@link ScanIntentResult}.
      *
-     * @param context             Current context (not used for now)
+     * @param context             Current context
      * @param rawResult           the ZXing result value object
      * @param csvWithMetadataKeys a csv String list with meta-data keys to send back
      *                            if available.
@@ -34,11 +33,11 @@ public class ScanContract
      * @return the Intent
      */
     @NonNull
-    public static Intent createResultIntent(@NonNull final Context context,
-                                            @NonNull final Result rawResult,
-                                            @Nullable final String csvWithMetadataKeys) {
+    static Intent createResultIntent(@SuppressWarnings("unused") @NonNull final Context context,
+                                     @NonNull final Result rawResult,
+                                     @Nullable final String csvWithMetadataKeys) {
 
-        Intent intent = new Intent()
+        final Intent intent = new Intent()
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
                 .putExtra(ScanIntentResult.Success.TEXT, rawResult.getText())
                 .putExtra(ScanIntentResult.Success.FORMAT, rawResult.getBarcodeFormat().toString());
@@ -78,8 +77,8 @@ public class ScanContract
                                 // "META_RESULT_BYTE_SEGMENTS_PREFIX" with type int.
                                 int i = 0;
                                 //noinspection unchecked
-                                for (byte[] byteSegment : (List<byte[]>) entry.getValue()) {
-                                    intent.putExtra(key + "_" + i, byteSegment);
+                                for (final byte[] segment : (Iterable<byte[]>) entry.getValue()) {
+                                    intent.putExtra(key + "_" + i, segment);
                                     i++;
                                 }
                                 // The amount of numbered keys 0..[len-1]
@@ -87,6 +86,10 @@ public class ScanContract
                                 break;
                             }
 
+                            case OTHER:
+                            case PDF417_EXTRA_METADATA:
+                            case STRUCTURED_APPEND_SEQUENCE:
+                            case STRUCTURED_APPEND_PARITY:
                             default:
                                 // undefined object type, can't add those.
                                 break;
@@ -110,10 +113,11 @@ public class ScanContract
         if (intent == null || resultCode != Activity.RESULT_OK) {
             return Optional.empty();
         } else {
-            return Optional.of(new ScanIntentResult(resultCode, intent));
+            return Optional.of(ScanIntentResult.parseActivityResult(resultCode, intent));
         }
     }
 
+    @FunctionalInterface
     public interface Input {
 
         @NonNull

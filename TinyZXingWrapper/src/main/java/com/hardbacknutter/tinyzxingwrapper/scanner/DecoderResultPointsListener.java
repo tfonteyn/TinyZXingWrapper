@@ -4,13 +4,14 @@ import com.google.zxing.ResultPointCallback;
 
 /**
  * The {@link BarcodeScanner} will call the methods of this interface with feedback
- * on image size and result-points during the scan process.
+ * on image size and result-points during scan decoding.
  */
-public interface ResultPointListener
+@FunctionalInterface
+public interface DecoderResultPointsListener
         extends ResultPointCallback {
 
-    default void setImageSize(int width,
-                              int height) {
+    default void setImageSize(final int width,
+                              final int height) {
         // do nothing by default
     }
 }

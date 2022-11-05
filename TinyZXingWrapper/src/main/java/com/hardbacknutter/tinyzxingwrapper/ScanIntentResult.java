@@ -11,14 +11,14 @@ import com.google.zxing.ResultMetadataType;
 /**
  * Encapsulates the result of a barcode scan.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class ScanIntentResult {
 
     @NonNull
     private final Intent intent;
     private final int resultCode;
 
-    ScanIntentResult(final int resultCode,
+    private ScanIntentResult(final int resultCode,
                      @NonNull final Intent intent) {
         this.intent = intent;
         this.resultCode = resultCode;
@@ -131,6 +131,9 @@ public final class ScanIntentResult {
          * Key name prefix for {@link ResultMetadataType} entries.
          */
         public static final String META_KEY_PREFIX = "META_";
+
+        private Success() {
+        }
     }
 
     public static final class Failure {
@@ -174,5 +177,7 @@ public final class ScanIntentResult {
          */
         public static final String EXCEPTION = "EXCEPTION";
 
+        private Failure() {
+        }
     }
 }

@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class TzwViewfinderView
         extends View
-        implements ResultPointListener {
+        implements DecoderResultPointsListener {
 
     private static final int[] LASER_COLOR_ALPHA = {0, 64, 128, 192, 255, 192, 128, 64};
     private static final long ANIMATION_DELAY_MS = 80L;
@@ -91,9 +91,8 @@ public class TzwViewfinderView
         final Resources resources = getResources();
         final Resources.Theme theme = getContext().getTheme();
 
-        @SuppressWarnings("resource")
-        final TypedArray attributes = getContext().obtainStyledAttributes(attrs,
-                R.styleable.TzwViewfinderView);
+        @SuppressWarnings("resource") final TypedArray attributes = getContext()
+                .obtainStyledAttributes(attrs, R.styleable.TzwViewfinderView);
 
         showLaser = attributes.getBoolean(
                 R.styleable.TzwViewfinderView_tzw_enable_laser,

@@ -14,19 +14,23 @@ import com.google.zxing.common.HybridBinarizer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ */
+@SuppressWarnings("WeakerAccess")
 public class DefaultDecoder
         implements Decoder {
 
     @NonNull
-    private final Reader reader;
-    private final List<ResultPoint> points = new ArrayList<>();
+    protected final Reader reader;
+    protected final List<ResultPoint> points = new ArrayList<>();
 
     /**
      * Create a new Decoder with the specified Reader.
      *
      * @param reader the reader
      */
-    public DefaultDecoder(@NonNull final Reader reader) {
+    protected DefaultDecoder(@NonNull final Reader reader) {
         this.reader = reader;
     }
 

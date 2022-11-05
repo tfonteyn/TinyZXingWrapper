@@ -31,7 +31,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class InactivityTimer
+final class InactivityTimer
         implements LifecycleEventObserver {
 
     /**
@@ -71,21 +71,21 @@ public final class InactivityTimer
         }
     };
 
-    public InactivityTimer(@NonNull final Context context,
-                             @NonNull final Runnable callback) {
+    InactivityTimer(@NonNull final Context context,
+                    @NonNull final Runnable callback) {
         this.context = context;
         this.callback = callback;
         handler = new Handler();
     }
 
-    public void setInactivityDelayMs(final long inactivityDelayMs) {
+    void setInactivityDelayMs(final long inactivityDelayMs) {
         this.inactivityDelayMs = inactivityDelayMs;
     }
 
     /**
      * Reset the timer, and trigger the callback.
      */
-    public void reset() {
+    private void reset() {
         handler.removeCallbacksAndMessages(null);
         if (startTimer) {
             handler.postDelayed(callback, inactivityDelayMs);
@@ -100,6 +100,7 @@ public final class InactivityTimer
     @Override
     public void onStateChanged(@NonNull final LifecycleOwner source,
                                @NonNull final Lifecycle.Event event) {
+        //noinspection EnumSwitchStatementWhichMissesCases
         switch (event) {
             case ON_RESUME:
                 synchronized (registered) {

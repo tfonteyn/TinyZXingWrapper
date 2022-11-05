@@ -21,7 +21,7 @@ public enum DecoderType {
         this.type = type;
     }
 
-    public static DecoderType get(final int type) {
+    static DecoderType get(final int type) {
         switch (type) {
             case 2:
                 return Mixed;

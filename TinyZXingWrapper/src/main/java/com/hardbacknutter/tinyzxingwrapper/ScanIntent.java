@@ -21,6 +21,7 @@ import java.util.Objects;
 /**
  * Low-level Intent keys used to create the input options for {@link ScanContract}.
  */
+@SuppressWarnings("WeakerAccess")
 public class ScanIntent
         implements ScanContract.Input {
 
@@ -32,9 +33,6 @@ public class ScanIntent
     protected final Intent intent = new Intent();
     @NonNull
     private Class<?> captureActivity = CaptureActivity.class;
-
-    public ScanIntent() {
-    }
 
     /**
      * Set the Activity class to use. It should provide equivalent functionality
@@ -65,7 +63,8 @@ public class ScanIntent
      *
      * @return the intent
      */
-    public @NonNull Intent createScanIntent(@NonNull final Context context) {
+    @NonNull
+    public Intent createScanIntent(@NonNull final Context context) {
         intent.setComponent(new ComponentName(context, captureActivity))
                 .setAction(ACTION)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -148,6 +147,9 @@ public class ScanIntent
          * @see ScanContract#createResultIntent(Context, Result, String)
          */
         public static final String RETURN_META_DATA = "RETURN_META_DATA";
+
+        private OptionKey() {
+        }
     }
 
     /**
@@ -190,6 +192,9 @@ public class ScanIntent
          * @see com.hardbacknutter.tinyzxingwrapper.ScanOptions#setInactivityTimeout(long)
          */
         public static final String INACTIVITY_TIMEOUT_MS = "INACTIVITY_TIMEOUT_MS";
+
+        private ToolOptionKey() {
+        }
     }
 
 }

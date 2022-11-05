@@ -11,6 +11,7 @@ import com.google.zxing.ResultPointCallback;
 import java.util.ArrayList;
 import java.util.List;
 
+@FunctionalInterface
 public interface Decoder
         extends ResultPointCallback {
 
@@ -44,7 +45,7 @@ public interface Decoder
      * @param point found
      */
     @Override
-    default void foundPossibleResultPoint(@NonNull ResultPoint point) {
+    default void foundPossibleResultPoint(@NonNull final ResultPoint point) {
 
     }
 }

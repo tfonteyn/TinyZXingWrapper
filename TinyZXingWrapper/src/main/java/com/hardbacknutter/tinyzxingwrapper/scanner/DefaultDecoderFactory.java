@@ -13,18 +13,15 @@ import java.util.Map;
  * DecoderFactory that creates a {@link Decoder} based on the {@link DecoderType}
  * using a {@link MultiFormatReader} and any provided {@link DecodeHintType} hints.
  */
+@SuppressWarnings("WeakerAccess")
 public class DefaultDecoderFactory implements DecoderFactory {
 
     private final DecoderType type;
 
     private final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
 
-    public DefaultDecoderFactory() {
-        this(null, null);
-    }
-
-    public DefaultDecoderFactory(@Nullable final DecoderType type,
-                                 @Nullable final Map<DecodeHintType, Object> hints) {
+    protected DefaultDecoderFactory(@Nullable final DecoderType type,
+                                    @Nullable final Map<DecodeHintType, Object> hints) {
         this.type = type != null ? type : DecoderType.Normal;
         if (hints != null) {
             this.hints.putAll(hints);
@@ -35,7 +32,7 @@ public class DefaultDecoderFactory implements DecoderFactory {
     @NonNull
     public Decoder createDecoder() {
         final MultiFormatReader reader = new MultiFormatReader();
-        Decoder decoder;
+        final Decoder decoder;
         switch (type) {
             case Inverted:
                 decoder = new InvertedDecoder(reader);

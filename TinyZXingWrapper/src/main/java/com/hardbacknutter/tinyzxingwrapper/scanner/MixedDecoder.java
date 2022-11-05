@@ -10,13 +10,14 @@ import com.google.zxing.common.HybridBinarizer;
 /**
  * Decoder that performs alternating scans in normal and inverted mode.
  */
+@SuppressWarnings("WeakerAccess")
 public class MixedDecoder
         extends DefaultDecoder {
 
     /** first decode will be 'normal'; then alternate. */
     private boolean isInverted = true;
 
-    public MixedDecoder(@NonNull final Reader reader) {
+    protected MixedDecoder(@NonNull final Reader reader) {
         super(reader);
     }
 

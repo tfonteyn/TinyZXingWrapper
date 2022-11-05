@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
  *
  * @see DefaultDecoderFactory
  */
+@FunctionalInterface
 public interface DecoderFactory {
 
     /**

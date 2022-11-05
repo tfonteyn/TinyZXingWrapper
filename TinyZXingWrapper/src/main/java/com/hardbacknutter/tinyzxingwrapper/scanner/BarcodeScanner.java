@@ -29,7 +29,6 @@ import com.google.zxing.ResultPoint;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +36,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@SuppressWarnings("ClassWithOnlyPrivateConstructors")
 public class BarcodeScanner
         implements LifecycleEventObserver {
 
@@ -63,17 +63,20 @@ public class BarcodeScanner
      * Otherwise one of {@link CameraSelector#LENS_FACING_FRONT} or
      * {@link CameraSelector#LENS_FACING_BACK}
      */
+    @Nullable
     private final Integer lensFacing;
     private final boolean enableTorch;
+    @NonNull
+    private final ScanMode scanMode;
     @Nullable
-    private final ResultPointListener resultPointCallback;
+    private final DecoderResultPointsListener resultPointCallback;
     @GuardedBy("lock")
     @Nullable
     private ProcessCameraProvider cameraProvider;
 
     private BarcodeScanner(@NonNull final Context context,
-                          @NonNull final LifecycleOwner lifecycleOwner,
-                          @NonNull final Preview.SurfaceProvider surfaceProvider,
+                           @NonNull final LifecycleOwner lifecycleOwner,
+                           @NonNull final Preview.SurfaceProvider surfaceProvider,
                            @NonNull final Builder builder) {
         cameraProviderFuture = ProcessCameraProvider.getInstance(context);
         mainExecutor = ContextCompat.getMainExecutor(context);
@@ -86,19 +89,12 @@ public class BarcodeScanner
         enableTorch = builder.enableTorch;
         decoderFactory = new DefaultDecoderFactory(builder.decoderType, builder.hints);
 
+        scanMode = builder.scanMode;
+
         resultPointCallback = builder.resultPointCallback;
     }
 
-    @SuppressWarnings("unused")
-    public void cancel() {
-        synchronized (lock) {
-            if (cameraProvider != null) {
-                cameraProvider.unbindAll();
-            }
-        }
-    }
-
-    public void startScan(@NonNull final ScanResultListener resultListener) {
+    public void startScan(@NonNull final DecoderResultListener resultListener) {
         cameraProviderFuture.addListener(
                 () -> {
                     try {
@@ -150,6 +146,10 @@ public class BarcodeScanner
                                             riData.toLuminanceSource());
                                     if (result != null) {
                                         mainExecutor.execute(() -> resultListener.onResult(result));
+                                        if (scanMode == ScanMode.Single) {
+                                            stopScanning();
+                                            return;
+                                        }
                                     }
                                 } catch (@NonNull final Exception e) {
                                     mainExecutor.execute(() -> resultListener.onError(
@@ -173,7 +173,7 @@ public class BarcodeScanner
                                             resultPointCallback.setImageSize(image.getWidth(),
                                                     image.getHeight());
 
-                                            for (ResultPoint point : possibleResultPoints) {
+                                            possibleResultPoints.forEach(point -> {
                                                 if (isImageFlipped) {
                                                     final float x = image.getWidth() - point.getX();
                                                     final float y = point.getY();
@@ -183,7 +183,7 @@ public class BarcodeScanner
                                                     resultPointCallback.foundPossibleResultPoint(
                                                             point);
                                                 }
-                                            }
+                                            });
                                         });
                                     }
                                 } catch (@NonNull final Exception e) {
@@ -216,9 +216,18 @@ public class BarcodeScanner
                 mainExecutor);
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
+    public void stopScanning() {
+        synchronized (lock) {
+            if (cameraProvider != null) {
+                cameraProvider.unbindAll();
+            }
+        }
+    }
+
     @Override
-    public void onStateChanged(@NonNull LifecycleOwner source,
-                               @NonNull Lifecycle.Event event) {
+    public void onStateChanged(@NonNull final LifecycleOwner source,
+                               @NonNull final Lifecycle.Event event) {
         if (event == Lifecycle.Event.ON_DESTROY) {
             cameraExecutor.shutdown();
         }
@@ -234,6 +243,7 @@ public class BarcodeScanner
      * <a href="http://stackoverflow.com/a/15775173">stackoverflow</a>
      * but stripped to only use the 'Y' data of the image.
      */
+    @SuppressWarnings("unused")
     private static class RawImageData {
 
         @NonNull
@@ -267,7 +277,6 @@ public class BarcodeScanner
                     data, width, height, 0, 0, width, height, false);
         }
 
-        @SuppressWarnings("unused")
         @NonNull
         RawImageData crop(@NonNull final Rect cropRect) {
             final int cropWidth = cropRect.width();
@@ -278,7 +287,7 @@ public class BarcodeScanner
             int inputOffset = cropRect.top * this.width + cropRect.left;
             // Copy one cropped row at a time.
             for (int y = 0; y < cropHeight; y++) {
-                int outputOffset = y * cropWidth;
+                final int outputOffset = y * cropWidth;
                 System.arraycopy(this.data, inputOffset, matrix, outputOffset, cropWidth);
                 inputOffset += this.width;
             }
@@ -306,9 +315,7 @@ public class BarcodeScanner
          * @return the rotated data
          */
         private RawImageData rotateCW() {
-
-
-            byte[] yuv = new byte[width * height];
+            final byte[] yuv = new byte[width * height];
 
             int i = 0;
             for (int x = 0; x < width; x++) {
@@ -326,8 +333,8 @@ public class BarcodeScanner
          * @return the rotated data
          */
         private RawImageData rotate180() {
-            int n = width * height;
-            byte[] yuv = new byte[n];
+            final int n = width * height;
+            final byte[] yuv = new byte[n];
 
             int i = n - 1;
             for (int j = 0; j < n; j++) {
@@ -343,8 +350,8 @@ public class BarcodeScanner
          * @return the rotated data
          */
         private RawImageData rotateCCW() {
-            int n = width * height;
-            byte[] yuv = new byte[n];
+            final int n = width * height;
+            final byte[] yuv = new byte[n];
 
             int i = n - 1;
             for (int x = 0; x < width; x++) {
@@ -359,7 +366,7 @@ public class BarcodeScanner
 
     @SuppressWarnings({"UnusedReturnValue", "unused"})
     public static class Builder {
-        private final Map<DecodeHintType, Object> hints = new HashMap<>();
+        private final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
 
         /**
          * a debug flag to enable Log.w() messages
@@ -373,10 +380,12 @@ public class BarcodeScanner
         @Nullable
         private DecoderType decoderType;
 
-        @Nullable
-        private ResultPointListener resultPointCallback;
+        @NonNull
+        private ScanMode scanMode = ScanMode.Single;
 
-        @SuppressWarnings("unused")
+        @Nullable
+        private DecoderResultPointsListener resultPointCallback;
+
         @NonNull
         public Builder setLoggingEnabled(final boolean loggingEnabled) {
             this.loggingEnabled = loggingEnabled;
@@ -387,6 +396,10 @@ public class BarcodeScanner
         public Builder setTorch(final boolean enable) {
             enableTorch = enable;
             return this;
+        }
+
+        public void setScanMode(@NonNull final ScanMode scanMode) {
+            this.scanMode = scanMode;
         }
 
         @NonNull
@@ -418,17 +431,26 @@ public class BarcodeScanner
         }
 
         @NonNull
-        public Builder  setResultPointCallback(@Nullable final ResultPointListener resultPointCallback) {
+        public Builder setHints(@Nullable final Map<DecodeHintType, Object> hints) {
+            if (hints != null) {
+                this.hints.putAll(hints);
+            }
+            return this;
+        }
+
+        @NonNull
+        public Builder setResultPointListener(
+                @Nullable final DecoderResultPointsListener resultPointCallback) {
             this.resultPointCallback = resultPointCallback;
             return this;
         }
 
         @NonNull
         private Map<DecodeHintType, Object> parseHints(@Nullable final Bundle args) {
-            final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+            final Map<DecodeHintType, Object> result = new EnumMap<>(DecodeHintType.class);
 
             if (args == null || args.isEmpty()) {
-                return hints;
+                return result;
             }
 
             Arrays.stream(DecodeHintType.values())
@@ -440,12 +462,12 @@ public class BarcodeScanner
                             if (hintType.getValueType().equals(Void.class)) {
                                 // Void hints are just flags: use the constant
                                 // specified by the DecodeHintType
-                                hints.put(hintType, Boolean.TRUE);
+                                result.put(hintType, Boolean.TRUE);
 
                             } else {
                                 final Object hintData = args.get(hintName);
                                 if (hintType.getValueType().isInstance(hintData)) {
-                                    hints.put(hintType, hintData);
+                                    result.put(hintType, hintData);
                                 } else {
                                     if (loggingEnabled) {
                                         Log.w(TAG, "Ignoring hint " + hintType
@@ -457,9 +479,9 @@ public class BarcodeScanner
                     });
 
             if (loggingEnabled) {
-                Log.i(TAG, "Hints from the Intent: " + hints);
+                Log.i(TAG, "Hints from the Intent: " + result);
             }
-            return hints;
+            return result;
         }
 
         @NonNull

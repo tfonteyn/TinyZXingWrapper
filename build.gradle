@@ -12,7 +12,7 @@ task clean(type: Delete) {
 
 ext {
     // build version for the library
-    tiny_zxing_wrapper_version = '0.2.0'
+    tiny_zxing_wrapper_version = '0.3.0'
 
     androidTargetSdk = 33
     androidMinimumSdk = 26
