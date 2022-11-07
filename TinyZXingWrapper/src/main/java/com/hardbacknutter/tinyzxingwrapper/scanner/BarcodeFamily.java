@@ -7,6 +7,16 @@ import com.google.zxing.BarcodeFormat;
 import java.util.EnumSet;
 import java.util.Set;
 
+/**
+ * <a href="https://www.peaktech.com/blog/learn-about-the-different-types-of-barcodes/">
+ * Barcode Types</a>
+ * <p>
+ * Groups 1D barcode types into 3 families for easier configuration.
+ * <p>
+ * 2D codes are not listed here as I presume typical use would be
+ * scanning for just a single 2D type.
+ * Use {@link com.google.zxing.DecodeHintType#POSSIBLE_FORMATS} directly for those.
+ */
 @SuppressWarnings("unused")
 public enum BarcodeFamily {
     /**
@@ -22,7 +32,17 @@ public enum BarcodeFamily {
             BarcodeFormat.RSS_EXPANDED)),
 
     /**
-     * Decode all {@link #Product} barcodes and in addition a set of industrial codes.
+     * 1D industrial usage codes.
+     */
+    Industrial(EnumSet.of(
+            BarcodeFormat.CODE_39,
+            BarcodeFormat.CODE_93,
+            BarcodeFormat.CODE_128,
+            BarcodeFormat.ITF,
+            BarcodeFormat.CODABAR)),
+
+    /**
+     * Decode all {@link #Product} and {@link #Industrial} barcodes.
      */
     OneD(EnumSet.of(
             // Product
@@ -32,20 +52,12 @@ public enum BarcodeFamily {
             BarcodeFormat.EAN_8,
             BarcodeFormat.RSS_14,
             BarcodeFormat.RSS_EXPANDED,
-            // INDUSTRIAL_FORMATS
+            // Industrial
             BarcodeFormat.CODE_39,
             BarcodeFormat.CODE_93,
             BarcodeFormat.CODE_128,
             BarcodeFormat.ITF,
-            BarcodeFormat.CODABAR)),
-
-    QrCode(EnumSet.of(BarcodeFormat.QR_CODE)),
-
-    DataMatrix(EnumSet.of(BarcodeFormat.DATA_MATRIX)),
-
-    Aztec(EnumSet.of(BarcodeFormat.AZTEC)),
-
-    Pdf417(EnumSet.of(BarcodeFormat.PDF_417));
+            BarcodeFormat.CODABAR));
 
     @NonNull
     final Set<BarcodeFormat> formats;
