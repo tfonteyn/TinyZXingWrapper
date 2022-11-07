@@ -14,16 +14,13 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.CameraSelector;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.zxing.Result;
-import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultListener;
-import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
 import java.util.Objects;
@@ -171,37 +168,15 @@ public class CaptureActivity
     private void startScanner() {
         final Bundle args = getIntent().getExtras();
 
-        final BarcodeScanner scanner = createScanner(args);
+        final BarcodeScanner scanner = ScanIntent.createScanner(this, this,
+                previewView.getSurfaceProvider(), args);
+
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
+            scanner.setResultPointListener(viewFinderView);
+        }
 
         getLifecycle().addObserver(scanner);
         scanner.startScan(decoderResultListener);
     }
 
-    private BarcodeScanner createScanner(@Nullable final Bundle args) {
-        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
-
-        if (args != null) {
-            if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
-                builder.setCameraLensFacing(args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
-                        CameraSelector.LENS_FACING_BACK));
-            }
-
-            final String codeFamily = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
-            if (codeFamily != null) {
-                builder.setCodeFamily(BarcodeFamily.valueOf(codeFamily));
-            }
-
-            builder.setTorch(args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false))
-                    .setHints(args)
-                    .setDecoderType(args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
-                            DecoderType.Normal.type));
-        }
-
-        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            builder.setResultPointListener(viewFinderView);
-        }
-
-        return builder.build(this, this,
-                previewView.getSurfaceProvider());
-    }
 }
