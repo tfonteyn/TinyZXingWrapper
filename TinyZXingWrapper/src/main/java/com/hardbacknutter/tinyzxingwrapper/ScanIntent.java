@@ -8,8 +8,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.Preview;
-import androidx.lifecycle.LifecycleOwner;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
@@ -35,55 +33,6 @@ public class ScanIntent
     protected final Intent intent = new Intent();
     @NonNull
     private Class<?> captureActivity = CaptureActivity.class;
-
-    /**
-     * Creates a {@link BarcodeScanner} initialised with all/any {@link OptionKey}s
-     * from the given 'args' bundle.
-     * <p>
-     * Once created, the next steps would be:
-     * {@code
-     * getLifecycle().addObserver(scanner);
-     * scanner.setResultPointListener(viewFinderView); //optional
-     * scanner.startScan(decoderResultListener);
-     * }
-     *
-     * @param context         Current context
-     * @param lifecycleOwner  the life-cycle owner to bind to
-     * @param surfaceProvider the Camera preview View
-     * @param args            optional arguments based on {@link OptionKey}s
-     *
-     * @return a scanner ready to scan.
-     */
-    @NonNull
-    public static BarcodeScanner createScanner(
-            @NonNull final Context context,
-            @NonNull final LifecycleOwner lifecycleOwner,
-            @NonNull final Preview.SurfaceProvider surfaceProvider,
-            @Nullable final Bundle args) {
-
-        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
-        if (args != null) {
-            final String codeFamily = args.getString(OptionKey.CODE_FAMILY);
-            if (codeFamily != null) {
-                builder.setCodeFamily(BarcodeFamily.valueOf(codeFamily));
-            }
-
-            builder.setHints(args)
-                    .setDecoderType(args.getInt(OptionKey.DECODER_TYPE, DecoderType.Normal.type));
-        }
-
-        final BarcodeScanner scanner = builder.build(context, lifecycleOwner, surfaceProvider);
-
-        if (args != null) {
-            scanner.setTorch(args.getBoolean(OptionKey.TORCH_ENABLED, false));
-
-            if (args.containsKey(OptionKey.CAMERA_LENS_FACING)) {
-                scanner.setCameraLensFacing(args.getInt(OptionKey.CAMERA_LENS_FACING,
-                        CameraSelector.LENS_FACING_BACK));
-            }
-        }
-        return scanner;
-    }
 
     /**
      * Set the Activity class to use. It should provide equivalent functionality

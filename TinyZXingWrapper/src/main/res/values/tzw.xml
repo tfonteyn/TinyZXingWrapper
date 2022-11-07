@@ -6,6 +6,9 @@
     <!-- Optional - CaptureActivity container. -->
     <item name="tzw_container" type="id" />
 
+    <!-- Optional - a button to switch the torch on/off -->
+    <item name="tzw_btn_torch" type="id" />
+
     <!-- Optional - CaptureActivity view-finder overlay -->
     <item name="tzw_viewfinder_view" type="id" />
     <declare-styleable name="TzwViewfinderView">

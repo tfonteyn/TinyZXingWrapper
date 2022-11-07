@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/tzw_container"
+    android:id="@id/tzw_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.hardbacknutter.tinyzxingwrapper.CaptureActivity">
@@ -27,12 +28,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- icon: see java code -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@id/tzw_btn_torch"
+        style="@style/Widget.Material3.Button.IconButton.Filled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="8dp"
+        app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
+        />
+
     <TextView
         android:id="@id/tzw_status_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="8dp"
         android:background="?attr/tzw_status_text_background"
         android:textColor="?attr/tzw_status_text_color"
+        tools:ignore="SelectableText"
         tools:text="@string/tzw_status_text" />
-</merge>
+</FrameLayout>

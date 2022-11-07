@@ -124,12 +124,15 @@ public class BarcodeScanner
      * <ul>
      *     <li>{@link CameraSelector#LENS_FACING_FRONT}</li>
      *     <li>{@link CameraSelector#LENS_FACING_BACK}</li>
+     *     <li>{@code null} : let the device decide (this is the default)</li>
      * </ul>
      *
      * @param lensFacing preferred
      */
-    public void setCameraLensFacing(final int lensFacing) {
-        if (lensFacing == CameraSelector.LENS_FACING_BACK
+    public void setCameraLensFacing(@Nullable final Integer lensFacing) {
+        if (lensFacing == null) {
+            this.lensFacing = null;
+        } else if (lensFacing == CameraSelector.LENS_FACING_BACK
                 || lensFacing == CameraSelector.LENS_FACING_FRONT) {
             this.lensFacing = lensFacing;
         } else {

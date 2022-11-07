@@ -2,9 +2,36 @@ plugins {
     id("com.android.application")
 }
 
+/*
+    $HOME/.gradle/gradle.properties:
+        TinyZXingWrapper.properties=$HOME/blah/blah/TinyZXingWrapper.properties
+
+    $HOME/blah/blah/TinyZXingWrapper.properties:
+        sign.storeFile=$HOME/blah/blah/keystore.jks
+        sign.storePassword=MyStorePassword
+        sign.keyAlias=MyKeyAlias
+        sign.keyPassword=MyKeyPassword
+ */
+final def props = new Properties()
+if (project.hasProperty("TinyZXingWrapper.properties")) {
+    final def file = new File(project.property("TinyZXingWrapper.properties"))
+    if (file.exists()) {
+        props.load(new FileInputStream(file))
+    }
+}
+
 android {
     namespace 'com.hardbacknutter.tinyzxingwrapper.example'
     compileSdkVersion project.androidTargetSdk
+
+    signingConfigs {
+        release {
+            keyAlias props['sign.keyAlias']
+            keyPassword props['sign.keyPassword']
+            storeFile file(props['sign.storeFile'])
+            storePassword props['sign.storePassword']
+        }
+    }
 
     defaultConfig {
         applicationId "com.hardbacknutter.tinyzxingwrapper.example"
@@ -13,6 +40,8 @@ android {
 
         minSdk project.androidMinimumSdk
         targetSdk project.androidTargetSdk
+        
+        signingConfig signingConfigs.release
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
