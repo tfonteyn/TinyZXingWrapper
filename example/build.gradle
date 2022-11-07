@@ -48,14 +48,10 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
 
     implementation("androidx.activity:activity:${androidx_activity_version}")
-    implementation("androidx.annotation:annotation:${androidx_annotation_version}")
-    implementation("androidx.appcompat:appcompat:${androidx_appcompat_version}")
-    implementation("androidx.core:core:${androidx_core_version}")
     implementation("androidx.fragment:fragment:${androidx_fragment_version}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidx_lifecycle_version}")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:${androidx_lifecycle_version}")
 
-    implementation("androidx.camera:camera-core:${androidx_camerax_version}")
     implementation ("androidx.camera:camera-view:${androidx_camerax_version}")
 
     // https://github.com/material-components/material-components-android/releases
