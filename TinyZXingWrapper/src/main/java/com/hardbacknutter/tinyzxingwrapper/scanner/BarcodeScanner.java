@@ -368,6 +368,7 @@ public class BarcodeScanner
             return result;
         }
 
+        @NonNull
         public BarcodeScanner build(@NonNull final Context context,
                                     @NonNull final LifecycleOwner lifecycleOwner,
                                     @NonNull final Preview.SurfaceProvider surfaceProvider) {
