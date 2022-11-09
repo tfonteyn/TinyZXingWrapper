@@ -36,6 +36,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="8dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
         />
 

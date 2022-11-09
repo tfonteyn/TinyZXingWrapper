@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -20,13 +21,14 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.zxing.Result;
+
+import java.util.Objects;
+
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultListener;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
-
-import java.util.Objects;
 
 public class CaptureActivity
         extends AppCompatActivity {
@@ -58,7 +60,7 @@ public class CaptureActivity
             final String text = result.getText();
             if (text != null && !text.isBlank()) {
                 final Intent intent = ScanContract.createResultIntent(CaptureActivity.this,
-                        result, metaDataToReturn);
+                                                                      result, metaDataToReturn);
                 setResult(Activity.RESULT_OK, intent);
                 finish();
             }
@@ -112,7 +114,7 @@ public class CaptureActivity
             // only set if present, otherwise let the device decide.
             if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
                 lensFacing = args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
-                        CameraSelector.LENS_FACING_BACK);
+                                         CameraSelector.LENS_FACING_BACK);
             }
         }
         initScanner(args);
@@ -150,7 +152,7 @@ public class CaptureActivity
 
             if (args.containsKey(ScanIntent.OptionKey.DECODER_TYPE)) {
                 final int scanType = args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
-                        DecoderType.Normal.type);
+                                                 DecoderType.Normal.type);
                 builder.setDecoderType(scanType);
             }
         }
@@ -168,21 +170,27 @@ public class CaptureActivity
     private void initTorchButton() {
         torchButton = findViewById(R.id.tzw_btn_torch);
         if (torchButton != null) {
-            // We're not using checkable and StateLists as managing the background
-            // color then makes things needlessly complicated.
-            // Hence simply swap the icon manually here.
-            torchButton.setIconResource(torchEnabled
-                                        ? R.drawable.tzw_ic_baseline_flashlight_off_24
-                                        : R.drawable.tzw_ic_baseline_flashlight_on_24);
-            torchButton.setOnClickListener(v -> {
-                torchEnabled = !torchEnabled;
+            final boolean hasFlash = getPackageManager()
+                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+            torchButton.setVisibility(hasFlash ? View.VISIBLE : View.GONE);
+            if (hasFlash) {
+                // We're not using checkable and StateLists as managing the background
+                // color then makes things needlessly complicated.
+                // Hence simply swap the icon manually here.
                 torchButton.setIconResource(torchEnabled
                                             ? R.drawable.tzw_ic_baseline_flashlight_off_24
                                             : R.drawable.tzw_ic_baseline_flashlight_on_24);
-                if (scanner != null) {
-                    scanner.setTorch(torchEnabled);
-                }
-            });
+                torchButton.setOnClickListener(v -> {
+                    torchEnabled = !torchEnabled;
+                    torchButton.setIconResource(torchEnabled
+                                                ? R.drawable.tzw_ic_baseline_flashlight_off_24
+                                                : R.drawable.tzw_ic_baseline_flashlight_on_24);
+                    if (scanner != null) {
+                        scanner.setTorch(torchEnabled);
+                    }
+                });
+            }
         }
     }
 
@@ -218,16 +226,16 @@ public class CaptureActivity
 
         if (args != null) {
             inactivityTimeOutInMs = args.getLong(ScanIntent.ToolOptionKey.INACTIVITY_TIMEOUT_MS,
-                    0L);
+                                                 0L);
             hardTimeOutInMs = args.getLong(ScanIntent.ToolOptionKey.TIMEOUT_MS,
-                    0L);
+                                           0L);
         }
 
         // always enabled using the default or the specified setting
         inactivityTimer = new InactivityTimer(this, () -> {
             setResult(Activity.RESULT_CANCELED,
-                    new Intent().putExtra(ScanIntentResult.Failure.REASON,
-                            ScanIntentResult.Failure.REASON_INACTIVITY));
+                      new Intent().putExtra(ScanIntentResult.Failure.REASON,
+                                            ScanIntentResult.Failure.REASON_INACTIVITY));
             finish();
         });
 
@@ -241,8 +249,8 @@ public class CaptureActivity
         if (hardTimeOutInMs > 0) {
             new Handler().postDelayed(() -> {
                 setResult(Activity.RESULT_CANCELED,
-                        new Intent().putExtra(ScanIntentResult.Failure.REASON,
-                                ScanIntentResult.Failure.REASON_TIMEOUT));
+                          new Intent().putExtra(ScanIntentResult.Failure.REASON,
+                                                ScanIntentResult.Failure.REASON_TIMEOUT));
                 finish();
             }, hardTimeOutInMs);
         }
