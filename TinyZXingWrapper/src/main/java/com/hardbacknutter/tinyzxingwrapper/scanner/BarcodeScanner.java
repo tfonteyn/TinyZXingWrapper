@@ -26,7 +26,6 @@ import com.google.zxing.LuminanceSource;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
-import com.hardbacknutter.tinyzxingwrapper.BuildConfig;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -184,6 +183,7 @@ public class BarcodeScanner
                                 } catch (@NonNull final Exception e) {
                                     mainExecutor.execute(() -> resultListener.onError(
                                             " ImageAnalysis.Analyzer|image-processing", e));
+                                    stopScanning();
                                     return;
                                 }
 
@@ -200,6 +200,7 @@ public class BarcodeScanner
                                 } catch (@NonNull final Exception e) {
                                     mainExecutor.execute(() -> resultListener.onError(
                                             " ImageAnalysis.Analyzer|decoding", e));
+                                    stopScanning();
                                     return;
                                 }
 
@@ -235,6 +236,8 @@ public class BarcodeScanner
                                 } catch (@NonNull final Exception e) {
                                     mainExecutor.execute(() -> resultListener.onError(
                                             " ImageAnalysis.Analyzer|result-points", e));
+                                    stopScanning();
+                                    return;
                                 }
                             }
                         });
@@ -355,19 +358,11 @@ public class BarcodeScanner
                                 final Object hintData = args.get(hintName);
                                 if (hintType.getValueType().isInstance(hintData)) {
                                     result.put(hintType, hintData);
-                                } else {
-                                    if (BuildConfig.DEBUG) {
-                                        Log.w(TAG, "Ignoring hint " + hintType
-                                                + " because it is not assignable from " + hintData);
-                                    }
                                 }
                             }
                         }
                     });
 
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "Hints from the Intent: " + result);
-            }
             return result;
         }
 
