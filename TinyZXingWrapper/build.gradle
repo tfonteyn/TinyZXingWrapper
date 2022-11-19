@@ -37,8 +37,6 @@ android {
     }
 
     defaultConfig {
-        buildConfigField("String", "VERSION", "\"${tiny_zxing_wrapper_version}\"")
-
         minSdk project.androidMinimumSdk
         targetSdk project.androidTargetSdk
 
@@ -49,6 +47,9 @@ android {
     }
 
     buildTypes {
+        debug {
+
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
@@ -87,9 +88,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidx_lifecycle_version}")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$androidx_lifecycle_version")
 
+    implementation("androidx.camera:camera-core:${androidx_camerax_version}")
     implementation("androidx.camera:camera-camera2:${androidx_camerax_version}")
     implementation("androidx.camera:camera-lifecycle:${androidx_camerax_version}")
     implementation("androidx.camera:camera-view:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-extensions:${androidx_camerax_version}")
 
     // https://github.com/material-components/material-components-android/releases
     implementation("com.google.android.material:material:${google_material_version}")
