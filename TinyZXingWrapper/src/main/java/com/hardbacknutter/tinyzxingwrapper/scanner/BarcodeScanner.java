@@ -11,6 +11,7 @@ import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -21,7 +22,6 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.zxing.DecodeHintType;
-import com.google.zxing.LuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 
@@ -159,15 +159,19 @@ public class BarcodeScanner
                             // The image provided has format ImageFormat.YUV_420_888.
                             try (image) {
                                 // so we only take the Y data from plane 0
-                                final ByteBuffer yByteBuffer = image.getPlanes()[0].getBuffer();
+                                final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+
+                                final ByteBuffer yByteBuffer = yPlane.getBuffer();
                                 yByteBuffer.rewind();
                                 final byte[] yData = new byte[yByteBuffer.remaining()];
                                 yByteBuffer.get(yData);
 
-                                final LuminanceSource luminanceSource =
+                                final SimpleYLuminanceSource luminanceSource =
                                         new SimpleYLuminanceSource(yData,
                                                                    image.getWidth(),
-                                                                   image.getHeight())
+                                                                   image.getHeight(),
+                                                                   yPlane.getRowStride(),
+                                                                   yPlane.getPixelStride())
                                                 .flipHorizontal(isImageFlipped)
                                                 .rotate(image.getImageInfo().getRotationDegrees());
 

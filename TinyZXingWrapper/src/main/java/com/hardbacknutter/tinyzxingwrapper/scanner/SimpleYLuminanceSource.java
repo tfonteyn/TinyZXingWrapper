@@ -18,14 +18,38 @@ public class SimpleYLuminanceSource
 
     private final byte[] yuvData;
 
+
     public SimpleYLuminanceSource(@NonNull final byte[] yuvData,
                                   final int width,
-                                  final int height) {
+                                  final int height,
+                                  final int rowStride,
+                                  final int pixelStride) {
         super(width, height);
-        this.yuvData = yuvData;
+        if (rowStride == width) {
+            this.yuvData = yuvData;
+        } else {
+            // normalise and strip any padding
+            this.yuvData = new byte[width * height];
+            int dst = 0;
+            for (int y = 0; y < height; y++) {
+                final int rowStart = y * rowStride;
+                for (int x = 0; x < width; x++) {
+                    this.yuvData[dst++] = yuvData[rowStart + (x * pixelStride)];
+                }
+            }
+        }
     }
 
+    private SimpleYLuminanceSource(@NonNull final byte[] yuvData,
+                                   final int width,
+                                   final int height) {
+        super(width, height);
+        this.yuvData = yuvData;
 
+        if (yuvData.length != (width * height)) {
+            throw new IllegalArgumentException("yuvData contains padding");
+        }
+    }
 
     @Override
     @NonNull
@@ -104,7 +128,6 @@ public class SimpleYLuminanceSource
         }
         return new SimpleYLuminanceSource(yData, width, height);
     }
-
 
     @NonNull
     public SimpleYLuminanceSource rotate(final int rotationDegrees) {
