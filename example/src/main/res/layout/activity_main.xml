@@ -1,53 +1,85 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.hardbacknutter.tinyzxingwrapper.CaptureActivity">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp"
         android:paddingTop="16dp"
+        android:paddingRight="16dp"
         android:paddingBottom="16dp">
 
         <TextView
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:text="@string/app_name"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             />
 
         <TextView
-            android:layout_marginTop="32dp"
+            android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginTop="32dp"
             android:text="@string/msg_intro"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title"
             />
 
         <Button
-            android:layout_marginTop="32dp"
             android:id="@+id/basic_scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_scan_barcode"/>
+            android:layout_marginTop="32dp"
+            android:text="@string/btn_scan_barcode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/subtitle" />
 
         <Button
             android:id="@+id/with_scan_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_scan_inverted"/>
+            android:text="@string/btn_scan_inverted"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/basic_scan" />
 
         <Button
             android:id="@+id/front_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_front_camera"/>
+            android:text="@string/btn_front_camera"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/with_scan_type" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/lbl_last_Scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textIsSelectable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/front_camera" />
+
+        <TextView
+            android:id="@+id/last_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/lbl_last_Scan" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </ScrollView>

@@ -13,7 +13,7 @@
     <string name="err_unknown">Unknown issue/exception: %1$s</string>
 
     <string name="msg_scan_prompt">Scan something</string>
-    <string name="msg_barcode">Scanned: %1$s</string>
+    <string name="msg_barcode">Barcode: %1$s\nFormat: %2$s</string>
     <string name="msg_intro">Click a button to start a scan</string>
 
 </resources>
