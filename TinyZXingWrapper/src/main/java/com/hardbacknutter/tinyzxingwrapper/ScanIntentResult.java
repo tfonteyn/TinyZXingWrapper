@@ -6,65 +6,105 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultMetadataType;
 
 /**
  * Encapsulates the result of a barcode scan.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused", "ProhibitedExceptionCaught", "FieldNotUsedInToString"})
 public final class ScanIntentResult {
 
-    @NonNull
+    @Nullable
     private final Intent intent;
     private final int resultCode;
 
+    private final boolean success;
+    @Nullable
+    private final String barcodeText;
+
     private ScanIntentResult(final int resultCode,
-                     @NonNull final Intent intent) {
+                             @Nullable final Intent intent) {
         this.intent = intent;
         this.resultCode = resultCode;
+
+        if (resultCode == Activity.RESULT_OK && intent != null) {
+            final String tmpText = intent.getStringExtra(Success.TEXT);
+            success = (tmpText != null && !tmpText.isBlank());
+            barcodeText = success ? tmpText : null;
+
+        } else {
+            success = false;
+            barcodeText = null;
+        }
     }
 
     @NonNull
     public static ScanIntentResult parseActivityResult(final int resultCode,
-                                                       @NonNull final Intent intent) {
+                                                       @Nullable final Intent intent) {
         return new ScanIntentResult(resultCode, intent);
     }
 
     /**
+     * The scan is considered successful if we have a barcode text.
+     *
+     * @return {@code true} if {@link #getText()} will return a valid barcode.
+     */
+    public boolean isSuccess() {
+        return success;
+    }
+
+    /**
      * Success.
      *
-     * @return text of barcode
+     * @return (non - blank) text of barcode
+     *
+     * @see #isSuccess()
      */
     @Nullable
     public String getText() {
-        return intent.getStringExtra(Success.TEXT);
+        return barcodeText;
     }
 
     /**
      * Success.
      *
-     * @return name of format, like "QR_CODE", "UPC_A".
-     * See {@code BarcodeFormat} for more format names.
+     * @return {@code BarcodeFormat} or {@code null} if none found
      */
     @Nullable
-    public String getFormat() {
-        return intent.getStringExtra(Success.FORMAT);
+    public BarcodeFormat getFormat() {
+        if (success) {
+            try {
+                //noinspection ConstantConditions
+                return BarcodeFormat.valueOf(intent.getStringExtra(Success.FORMAT));
+            } catch (@NonNull final IllegalArgumentException | NullPointerException ignore) {
+                // ignore
+            }
+        }
+        return null;
     }
 
     /**
      * Success.
      *
-     * @return UPC EAN extension if applicable, or null otherwise
+     * @return (non - blank) text of UPC EAN extension or {@code null} if none found
      */
     @Nullable
     public String getUpcEanExtension() {
-        return intent.getStringExtra(Success.UPC_EAN_EXTENSION);
+        if (success) {
+            //noinspection ConstantConditions
+            final String text = intent.getStringExtra(Success.UPC_EAN_EXTENSION);
+            if (text != null && !text.isBlank()) {
+                return text;
+            }
+        }
+        return null;
     }
 
     /**
      * @return the full result intent
      */
-    @NonNull
+    @Nullable
     public Intent getIntent() {
         return intent;
     }
@@ -73,12 +113,11 @@ public final class ScanIntentResult {
         return resultCode;
     }
 
-    public boolean isSuccess() {
-        return resultCode == Activity.RESULT_OK;
-    }
 
     /**
      * Failure.
+     * <p>
+     * This method is likely going to change in a future release!
      * <p>
      * The returned value will be one of the predefined REASON_x codes
      * as defined in {@link Failure}, or a generic exception message.
@@ -86,19 +125,20 @@ public final class ScanIntentResult {
      * Do <strong>NOT</strong> rely on the generic exception message however,
      * it's only meant for logging/debug purposes!
      *
-     * @return the reason code
+     * @return the reason code or {@code null} if there is none
      */
+    @Nullable
     public String getFailure() {
-        return intent.getStringExtra(Failure.REASON);
+        return intent != null ? intent.getStringExtra(Failure.REASON) : null;
     }
 
     @NonNull
     @Override
     public String toString() {
         return "ScanIntentResult{"
-                + "resultCode=" + resultCode
-                + ", intent=" + intent
-                + '}';
+               + "resultCode=" + resultCode
+               + ", intent=" + intent
+               + '}';
     }
 
     public static final class Success {
@@ -140,10 +180,7 @@ public final class ScanIntentResult {
 
         /**
          * Key returned upon failure to scan; the value will be one of the
-         * predefined reason codes below, or a generic exception message.
-         * <p>
-         * Do NOT rely on the generic exception message,
-         * it's only meant for logging/debug purposes!
+         * predefined reason codes below.
          */
         public static final String REASON = "REASON";
 
@@ -170,7 +207,8 @@ public final class ScanIntentResult {
 
 
         /**
-         * A serialized Exception; might be present in addition to a generic "REASON"/message.
+         * A serialized Exception; might be present in addition to
+         * or instead of a generic "REASON".
          * <p>
          * Do NOT rely on this key being present,
          * it's only meant for logging/debug purposes!

@@ -19,8 +19,9 @@ public interface DecoderResultListener {
 
     /**
      * Decoding failed.
+     *
+     * @param e the {@link Exception} or {@link Error} thrown
      */
     @UiThread
-    void onError(@NonNull String s,
-                 @NonNull Exception e);
+    void onError(@NonNull Throwable e);
 }

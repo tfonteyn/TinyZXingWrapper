@@ -1,6 +1,5 @@
 package com.hardbacknutter.tinyzxingwrapper;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
@@ -12,10 +11,9 @@ import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class ScanContract
-        extends ActivityResultContract<ScanContract.Input, Optional<ScanIntentResult>> {
+        extends ActivityResultContract<ScanContract.Input, ScanIntentResult> {
 
 
     /**
@@ -108,13 +106,10 @@ public class ScanContract
     }
 
     @Override
-    public Optional<ScanIntentResult> parseResult(final int resultCode,
-                                                  @Nullable final Intent intent) {
-        if (intent == null || resultCode != Activity.RESULT_OK) {
-            return Optional.empty();
-        } else {
-            return Optional.of(ScanIntentResult.parseActivityResult(resultCode, intent));
-        }
+    @NonNull
+    public ScanIntentResult parseResult(final int resultCode,
+                                        @Nullable final Intent intent) {
+        return ScanIntentResult.parseActivityResult(resultCode, intent);
     }
 
     @FunctionalInterface

@@ -67,10 +67,8 @@ public class CaptureActivity
         }
 
         @Override
-        public void onError(@NonNull final String info,
-                            @NonNull final Exception e) {
+        public void onError(@NonNull final Throwable e) {
             final Intent intent = new Intent()
-                    .putExtra(ScanIntentResult.Failure.REASON, info + "|" + e.getMessage())
                     .putExtra(ScanIntentResult.Failure.EXCEPTION, e);
             setResult(Activity.RESULT_CANCELED, intent);
             finish();
@@ -82,7 +80,7 @@ public class CaptureActivity
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(), isGranted -> {
                         if (isGranted) {
-                            scanner.startScan(decoderResultListener);
+                            startScanner();
                         } else {
                             final Intent intent = new Intent().putExtra(
                                     ScanIntentResult.Failure.REASON,
@@ -125,11 +123,15 @@ public class CaptureActivity
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
-            //noinspection ConstantConditions
-            scanner.startScan(decoderResultListener);
+            startScanner();
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
+    }
+
+    private void startScanner() {
+        //noinspection ConstantConditions
+        scanner.startScan(this, previewView, decoderResultListener);
     }
 
     @Override
@@ -156,7 +158,8 @@ public class CaptureActivity
                 builder.setDecoderType(scanType);
             }
         }
-        scanner = builder.build(this, this, previewView.getSurfaceProvider());
+
+        scanner = builder.build(this);
         scanner.setTorch(torchEnabled);
         scanner.setCameraLensFacing(lensFacing);
 
