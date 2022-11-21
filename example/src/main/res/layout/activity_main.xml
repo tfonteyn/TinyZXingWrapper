@@ -46,12 +46,20 @@
             app:layout_constraintTop_toBottomOf="@id/subtitle" />
 
         <Button
+            android:id="@+id/isbn_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_scan_isbn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/basic_scan" />
+
+        <Button
             android:id="@+id/with_scan_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btn_scan_inverted"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/basic_scan" />
+            app:layout_constraintTop_toBottomOf="@id/isbn_scan" />
 
         <Button
             android:id="@+id/front_camera"

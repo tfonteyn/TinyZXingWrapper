@@ -4,6 +4,7 @@
     <string name="app_name">TinyZXingWrapper Example</string>
 
     <string name="btn_scan_barcode">Scan Barcode</string>
+    <string name="btn_scan_isbn">Scan ISBN</string>
     <string name="btn_scan_inverted">Scan Inverted</string>
     <string name="btn_front_camera">Use front Camera</string>
 

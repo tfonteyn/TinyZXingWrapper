@@ -13,6 +13,7 @@ import com.hardbacknutter.tinyzxingwrapper.ScanContract;
 import com.hardbacknutter.tinyzxingwrapper.ScanIntentResult;
 import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
 import com.hardbacknutter.tinyzxingwrapper.example.databinding.ActivityMainBinding;
+import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 
 public class MainActivity
@@ -61,12 +62,17 @@ public class MainActivity
         setContentView(vb.getRoot());
 
         vb.basicScan.setOnClickListener(this::scanBarcode);
+        vb.isbnScan.setOnClickListener(this::scanProduct);
         vb.withScanType.setOnClickListener(this::scanBarcodeInverted);
         vb.frontCamera.setOnClickListener(this::scanBarcodeFrontCamera);
     }
 
     private void scanBarcode(@NonNull final View view) {
         barcodeLauncher.launch(new ScanOptions());
+    }
+
+    private void scanProduct(@NonNull final View view) {
+        barcodeLauncher.launch(new ScanOptions().setBarcodeFamily(BarcodeFamily.Product));
     }
 
     private void scanBarcodeInverted(@NonNull final View view) {
