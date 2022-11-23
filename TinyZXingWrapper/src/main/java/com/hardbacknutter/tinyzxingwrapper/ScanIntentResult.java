@@ -1,13 +1,17 @@
 package com.hardbacknutter.tinyzxingwrapper;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
+
+import java.util.Map;
 
 /**
  * Encapsulates the result of a barcode scan.
@@ -29,7 +33,7 @@ public final class ScanIntentResult {
         this.resultCode = resultCode;
 
         if (resultCode == Activity.RESULT_OK && intent != null) {
-            final String tmpText = intent.getStringExtra(Success.TEXT);
+            final String tmpText = intent.getStringExtra(Success.BARCODE_TEXT);
             success = (tmpText != null && !tmpText.isBlank());
             barcodeText = success ? tmpText : null;
 
@@ -39,10 +43,96 @@ public final class ScanIntentResult {
         }
     }
 
+    /**
+     * Decode an intent as received by {@link ScanContract#parseResult(int, Intent)}
+     * into a user friendly value object {@link ScanIntentResult}.
+     */
     @NonNull
-    public static ScanIntentResult parseActivityResult(final int resultCode,
-                                                       @Nullable final Intent intent) {
+    public static ScanIntentResult parseActivityResultIntent(final int resultCode,
+                                                             @Nullable final Intent intent) {
         return new ScanIntentResult(resultCode, intent);
+    }
+
+    /**
+     * Encode an intent to return as the Activity result.
+     * <p>
+     * Picks relevant parts of the {@link Result} and adds them as intent extras.
+     * Will always contain {@link Success#BARCODE_TEXT} and {@link Success#BARCODE_FORMAT}.
+     * Anything else depends on what is requested with {@link ScanOptions.Option#RETURN_META_DATA}.
+     *
+     * @param context             Current context
+     * @param result              the ZXing result value object
+     * @param csvWithMetadataKeys a csv String list with meta-data keys to send back
+     *                            if available.
+     *
+     * @return the Intent
+     */
+    @NonNull
+    public static Intent createActivityResultIntent(@SuppressWarnings("unused")
+                                                    @NonNull final Context context,
+                                                    @NonNull final Result result,
+                                                    @Nullable final String csvWithMetadataKeys) {
+
+        final Intent intent = new Intent()
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+                .putExtra(Success.BARCODE_TEXT, result.getText())
+                .putExtra(Success.BARCODE_FORMAT, result.getBarcodeFormat().toString());
+
+        final Map<ResultMetadataType, ?> metadata = result.getResultMetadata();
+        if (metadata != null && csvWithMetadataKeys != null) {
+            metadata.entrySet()
+                    .stream()
+                    // only the ones the client requested
+                    .filter(entry -> csvWithMetadataKeys.contains(entry.getKey().name()))
+                    // paranoia...
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> {
+                        final ResultMetadataType type = entry.getKey();
+                        switch (type) {
+                            case ORIENTATION:
+                            case ISSUE_NUMBER: {
+                                intent.putExtra(type.name(), (int) entry.getValue());
+                                break;
+                            }
+                            case ERROR_CORRECTION_LEVEL:
+                            case SUGGESTED_PRICE:
+                            case POSSIBLE_COUNTRY:
+                            case UPC_EAN_EXTENSION:
+                            case SYMBOLOGY_IDENTIFIER: {
+                                intent.putExtra(type.name(), (String) entry.getValue());
+                                break;
+                            }
+                            case BYTE_SEGMENTS: {
+                                // Stored as a list of numbered keys each containing
+                                // one segment (byte[]).
+                                // e.g. the first byte segment is under key
+                                // "BYTE_SEGMENTS_PREFIX_0" and so on.
+                                //
+                                // The amount of keys (i.e. the length) is passed in as
+                                // "BYTE_SEGMENTS_PREFIX" with type int.
+                                int i = 0;
+                                //noinspection unchecked
+                                for (final byte[] segment : (Iterable<byte[]>) entry.getValue()) {
+                                    intent.putExtra(type.name() + "_" + i, segment);
+                                    i++;
+                                }
+                                // The amount of numbered keys 0..[len-1]
+                                intent.putExtra(type.name(), i - 1);
+                                break;
+                            }
+
+                            case OTHER:
+                            case PDF417_EXTRA_METADATA:
+                            case STRUCTURED_APPEND_SEQUENCE:
+                            case STRUCTURED_APPEND_PARITY:
+                            default:
+                                // undefined object type, can't add those.
+                                break;
+                        }
+                    });
+        }
+
+        return intent;
     }
 
     /**
@@ -55,7 +145,7 @@ public final class ScanIntentResult {
     }
 
     /**
-     * Success.
+     * If {@link #isSuccess()}, returns the text of the barcode.
      *
      * @return (non - blank) text of barcode
      *
@@ -67,7 +157,7 @@ public final class ScanIntentResult {
     }
 
     /**
-     * Success.
+     * If {@link #isSuccess()}, returns the format of the barcode.
      *
      * @return {@code BarcodeFormat} or {@code null} if none found
      */
@@ -76,7 +166,7 @@ public final class ScanIntentResult {
         if (success) {
             try {
                 //noinspection ConstantConditions
-                return BarcodeFormat.valueOf(intent.getStringExtra(Success.FORMAT));
+                return BarcodeFormat.valueOf(intent.getStringExtra(Success.BARCODE_FORMAT));
             } catch (@NonNull final IllegalArgumentException | NullPointerException ignore) {
                 // ignore
             }
@@ -85,7 +175,7 @@ public final class ScanIntentResult {
     }
 
     /**
-     * Success.
+     * If {@link #isSuccess()}, returns the UPC EAN extension of the barcode.
      *
      * @return (non - blank) text of UPC EAN extension or {@code null} if none found
      */
@@ -93,7 +183,7 @@ public final class ScanIntentResult {
     public String getUpcEanExtension() {
         if (success) {
             //noinspection ConstantConditions
-            final String text = intent.getStringExtra(Success.UPC_EAN_EXTENSION);
+            final String text = intent.getStringExtra(ResultMetadataType.UPC_EAN_EXTENSION.name());
             if (text != null && !text.isBlank()) {
                 return text;
             }
@@ -129,7 +219,7 @@ public final class ScanIntentResult {
      */
     @Nullable
     public String getFailure() {
-        return intent != null ? intent.getStringExtra(Failure.REASON) : null;
+        return intent != null ? intent.getStringExtra(Failure.FAILURE_REASON) : null;
     }
 
     @NonNull
@@ -148,7 +238,7 @@ public final class ScanIntentResult {
          * <p>
          * Type: String
          */
-        public static final String TEXT = "RESULT_TEXT";
+        public static final String BARCODE_TEXT = "BARCODE_TEXT";
 
         /**
          * Which barcode format was found.
@@ -156,21 +246,7 @@ public final class ScanIntentResult {
          * <p>
          * Type: String
          */
-        public static final String FORMAT = "RESULT_FORMAT";
-
-        /**
-         * The content of any UPC extension barcode that was also found.
-         * Only applicable to {@link com.google.zxing.BarcodeFormat#UPC_A}
-         * and {@link com.google.zxing.BarcodeFormat#EAN_13} formats.
-         * <p>
-         * Type: String
-         */
-        public static final String UPC_EAN_EXTENSION = "RESULT_UPC_EAN_EXTENSION";
-
-        /**
-         * Key name prefix for {@link ResultMetadataType} entries.
-         */
-        public static final String META_KEY_PREFIX = "META_";
+        public static final String BARCODE_FORMAT = "BARCODE_FORMAT";
 
         private Success() {
         }
@@ -182,10 +258,10 @@ public final class ScanIntentResult {
          * Key returned upon failure to scan; the value will be one of the
          * predefined reason codes below.
          */
-        public static final String REASON = "REASON";
+        public static final String FAILURE_REASON = "FAILURE_REASON";
 
         /**
-         * The {@link ScanIntent.ToolOptionKey#TIMEOUT_MS} was exceeded.
+         * The {@link CaptureActivity.Option#TIMEOUT_MS} was exceeded.
          * <p>
          * Type: boolean
          */
@@ -208,12 +284,12 @@ public final class ScanIntentResult {
 
         /**
          * A serialized Exception; might be present in addition to
-         * or instead of a generic "REASON".
+         * or instead of {@link #FAILURE_REASON}.
          * <p>
          * Do NOT rely on this key being present,
          * it's only meant for logging/debug purposes!
          */
-        public static final String EXCEPTION = "EXCEPTION";
+        public static final String FAILURE_EXCEPTION = "FAILURE_EXCEPTION";
 
         private Failure() {
         }

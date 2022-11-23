@@ -29,6 +29,7 @@ import androidx.annotation.Nullable;
 
 import com.google.zxing.ResultPoint;
 import com.hardbacknutter.tinyzxingwrapper.R;
+import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultPointsListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ public class TzwViewfinderView
     private static final int PREVIOUS_POINT_OPACITY = 0x50;
     private static final int PREVIOUS_POINT_SIZE = 3;
 
+    @NonNull
     private final Paint paint;
 
     private final List<ResultPoint> resultPoints = new ArrayList<>(MAX_POINTS);

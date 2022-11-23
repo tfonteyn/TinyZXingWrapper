@@ -24,43 +24,39 @@ import com.google.zxing.Result;
 
 import java.util.Objects;
 
-import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultListener;
-import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
 public class CaptureActivity
         extends AppCompatActivity {
 
+    private static final long TIMEOUT_NOT_SET = -1;
     private PreviewView previewView;
+    @SuppressWarnings("FieldCanBeLocal")
     @Nullable
     private TzwViewfinderView viewFinderView;
     @SuppressWarnings("FieldCanBeLocal")
     @Nullable
     private TextView statusTextView;
-
     @Nullable
     private MaterialButton torchButton;
-
     @SuppressWarnings("FieldCanBeLocal")
     @Nullable
     private InactivityTimer inactivityTimer;
-
     private boolean torchEnabled;
     @Nullable
     private Integer lensFacing;
-
     @Nullable
     private String metaDataToReturn;
-
     private final DecoderResultListener decoderResultListener = new DecoderResultListener() {
         @Override
         public void onResult(@NonNull final Result result) {
             final String text = result.getText();
             if (text != null && !text.isBlank()) {
-                final Intent intent = ScanContract.createResultIntent(CaptureActivity.this,
-                                                                      result, metaDataToReturn);
+                final Intent intent = ScanIntentResult.createActivityResultIntent(
+                        CaptureActivity.this,
+                        result, metaDataToReturn);
                 setResult(Activity.RESULT_OK, intent);
                 finish();
             }
@@ -69,7 +65,7 @@ public class CaptureActivity
         @Override
         public void onError(@NonNull final Throwable e) {
             final Intent intent = new Intent()
-                    .putExtra(ScanIntentResult.Failure.EXCEPTION, e);
+                    .putExtra(ScanIntentResult.Failure.FAILURE_EXCEPTION, e);
             setResult(Activity.RESULT_CANCELED, intent);
             finish();
         }
@@ -83,13 +79,14 @@ public class CaptureActivity
                             startScanner();
                         } else {
                             final Intent intent = new Intent().putExtra(
-                                    ScanIntentResult.Failure.REASON,
+                                    ScanIntentResult.Failure.FAILURE_REASON,
                                     ScanIntentResult.Failure.REASON_MISSING_CAMERA_PERMISSION);
                             setResult(Activity.RESULT_CANCELED, intent);
                             finish();
                         }
                     });
-
+    private long inactivityTimeOutInMs = TIMEOUT_NOT_SET;
+    private long hardTimeOutInMs = TIMEOUT_NOT_SET;
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -100,26 +97,48 @@ public class CaptureActivity
 
         final PreviewView view = findViewById(R.id.tzw_preview);
         previewView = Objects.requireNonNull(view, "Missing R.id.tzw_preview");
-        viewFinderView = findViewById(R.id.tzw_viewfinder_view);
+
+
+        // Note that the ScanMode is kept as default (Single)
+        // and that we always use the default DecoderFactory
+        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
 
         Bundle args = getIntent().getExtras();
         if (args != null) {
-            metaDataToReturn = args.getString(ScanIntent.OptionKey.RETURN_META_DATA, null);
+            metaDataToReturn = args.getString(ScanOptions.Option.RETURN_META_DATA, null);
+
+            builder.addHints(args);
         }
+        scanner = builder.build(this);
+
+
         args = savedInstanceState != null ? savedInstanceState : args;
         if (args != null) {
-            torchEnabled = args.getBoolean(ScanIntent.OptionKey.TORCH_ENABLED, false);
+            torchEnabled = args.getBoolean(ScanOptions.Option.TORCH_ENABLED, false);
+
             // only set if present, otherwise let the device decide.
-            if (args.containsKey(ScanIntent.OptionKey.CAMERA_LENS_FACING)) {
-                lensFacing = args.getInt(ScanIntent.OptionKey.CAMERA_LENS_FACING,
+            if (args.containsKey(ScanOptions.Option.CAMERA_LENS_FACING)) {
+                lensFacing = args.getInt(ScanOptions.Option.CAMERA_LENS_FACING,
                                          CameraSelector.LENS_FACING_BACK);
             }
+
+            inactivityTimeOutInMs = args.getLong(Option.INACTIVITY_TIMEOUT_MS, TIMEOUT_NOT_SET);
+            hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
         }
-        initScanner(args);
+
+        scanner.setTorch(torchEnabled);
+        scanner.setCameraLensFacing(lensFacing);
+
+        viewFinderView = findViewById(R.id.tzw_viewfinder_view);
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
+            scanner.setResultPointListener(viewFinderView);
+        }
+
+        getLifecycle().addObserver(scanner);
 
         initTorchButton();
         initStatusText(args);
-        initTimeoutHandlers(args);
+        initTimeoutHandlers();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
@@ -131,43 +150,22 @@ public class CaptureActivity
 
     private void startScanner() {
         //noinspection ConstantConditions
-        scanner.startScan(this, previewView, decoderResultListener);
+        scanner.start(this, previewView, decoderResultListener);
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(ScanIntent.OptionKey.TORCH_ENABLED, torchEnabled);
+        outState.putBoolean(ScanOptions.Option.TORCH_ENABLED, torchEnabled);
         if (lensFacing != null) {
-            outState.putInt(ScanIntent.OptionKey.CAMERA_LENS_FACING, lensFacing);
+            outState.putInt(ScanOptions.Option.CAMERA_LENS_FACING, lensFacing);
         }
-    }
-
-    private void initScanner(@Nullable final Bundle args) {
-        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder()
-                .setHints(args);
-        if (args != null) {
-            final String codeFamily = args.getString(ScanIntent.OptionKey.CODE_FAMILY);
-            if (codeFamily != null) {
-                builder.setCodeFamily(BarcodeFamily.valueOf(codeFamily));
-            }
-
-            if (args.containsKey(ScanIntent.OptionKey.DECODER_TYPE)) {
-                final int scanType = args.getInt(ScanIntent.OptionKey.DECODER_TYPE,
-                                                 DecoderType.Normal.type);
-                builder.setDecoderType(scanType);
-            }
+        if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
+            outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);
         }
-
-        scanner = builder.build(this);
-        scanner.setTorch(torchEnabled);
-        scanner.setCameraLensFacing(lensFacing);
-
-        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            scanner.setResultPointListener(viewFinderView);
+        if (hardTimeOutInMs > TIMEOUT_NOT_SET) {
+            outState.putLong(Option.TIMEOUT_MS, hardTimeOutInMs);
         }
-
-        getLifecycle().addObserver(scanner);
     }
 
     private void initTorchButton() {
@@ -207,7 +205,7 @@ public class CaptureActivity
         if (statusTextView != null) {
             String statusText = null;
             if (args != null) {
-                statusText = args.getString(ScanIntent.ToolOptionKey.PROMPT_MESSAGE);
+                statusText = args.getString(Option.PROMPT);
             }
             if (statusText == null) {
                 statusTextView.setText(R.string.tzw_status_text);
@@ -219,44 +217,79 @@ public class CaptureActivity
 
     /**
      * Setup the optional hard-timeout and inactivity (soft) timeout.
-     *
-     * @param args method will parse its own options
      */
-    private void initTimeoutHandlers(@Nullable final Bundle args) {
+    private void initTimeoutHandlers() {
+        // unless explicitly disabled,
+        if (inactivityTimeOutInMs != 0) {
+            // enabled the timer using the default or the specified setting
+            inactivityTimer = new InactivityTimer(this, () -> {
+                setResult(Activity.RESULT_CANCELED,
+                          new Intent().putExtra(ScanIntentResult.Failure.FAILURE_REASON,
+                                                ScanIntentResult.Failure.REASON_INACTIVITY));
+                finish();
+            });
 
-        long inactivityTimeOutInMs = 0;
-        long hardTimeOutInMs = 0;
-
-        if (args != null) {
-            inactivityTimeOutInMs = args.getLong(ScanIntent.ToolOptionKey.INACTIVITY_TIMEOUT_MS,
-                                                 0L);
-            hardTimeOutInMs = args.getLong(ScanIntent.ToolOptionKey.TIMEOUT_MS,
-                                           0L);
+            if (inactivityTimeOutInMs > 0) {
+                inactivityTimer.setInactivityDelayMs(inactivityTimeOutInMs);
+            }
+            getLifecycle().addObserver(inactivityTimer);
         }
-
-        // always enabled using the default or the specified setting
-        inactivityTimer = new InactivityTimer(this, () -> {
-            setResult(Activity.RESULT_CANCELED,
-                      new Intent().putExtra(ScanIntentResult.Failure.REASON,
-                                            ScanIntentResult.Failure.REASON_INACTIVITY));
-            finish();
-        });
-
-        if (inactivityTimeOutInMs > 0) {
-            inactivityTimer.setInactivityDelayMs(inactivityTimeOutInMs);
-        }
-        getLifecycle().addObserver(inactivityTimer);
-
 
         // only enabled if explicitly set
         if (hardTimeOutInMs > 0) {
             new Handler().postDelayed(() -> {
                 setResult(Activity.RESULT_CANCELED,
-                          new Intent().putExtra(ScanIntentResult.Failure.REASON,
+                          new Intent().putExtra(ScanIntentResult.Failure.FAILURE_REASON,
                                                 ScanIntentResult.Failure.REASON_TIMEOUT));
                 finish();
             }, hardTimeOutInMs);
         }
     }
 
+    /**
+     * Arguments implemented by the default {@link CaptureActivity}.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static final class Option {
+
+        /**
+         * Prompt to show while scanning. Set to {@code ""} for none.
+         * <p>
+         * Default: use the predefined message.
+         * <p>
+         * Type: String
+         *
+         * @see ScanOptions#setPrompt(String)
+         */
+        public static final String PROMPT = "PROMPT";
+
+        /**
+         * Set a (hard) timeout in milliseconds to finish the scan screen.
+         * If no scan is done within this timeout, the attempt will be cancelled.
+         *
+         * <p>
+         * Default: not set.
+         * <p>
+         * Type: long (milliseconds)
+         *
+         * @see ScanOptions#setTimeout(long)
+         */
+        public static final String TIMEOUT_MS = "TIMEOUT_MS";
+
+        /**
+         * Set a (soft) timeout in milliseconds to cancel the scan.
+         * Lets the device decide if the user has been inactive for longer than this timeout.
+         * Set to {@code 0} to explicitly disable.
+         * <p>
+         * Default: see {@link InactivityTimer}, currently defined at 3 minutes.
+         * <p>
+         * Type: long (milliseconds)
+         *
+         * @see ScanOptions#setInactivityTimeout(long)
+         */
+        public static final String INACTIVITY_TIMEOUT_MS = "INACTIVITY_TIMEOUT_MS";
+
+        private Option() {
+        }
+    }
 }

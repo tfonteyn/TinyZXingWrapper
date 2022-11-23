@@ -21,25 +21,29 @@ import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
 
 @SuppressWarnings({"ClassWithOnlyPrivateConstructors", "WeakerAccess"})
 public class BarcodeScanner
         implements LifecycleEventObserver {
-
-    private static final String TAG = "BarcodeScanner";
 
     /**
      * Executor used by the image analyser.
@@ -81,8 +85,11 @@ public class BarcodeScanner
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(context);
 
-        decoderFactory = new DefaultDecoderFactory(builder.decoderType, builder.hints);
-        scanMode = builder.scanMode;
+        scanMode = Objects.requireNonNullElse(builder.scanMode, ScanMode.Single);
+
+        decoderFactory = Objects.requireNonNullElseGet(builder.decoderFactory,
+                                                       () -> new DefaultDecoderFactory(
+                                                               builder.hints));
     }
 
     /**
@@ -109,7 +116,7 @@ public class BarcodeScanner
     /**
      * Set the preferred camera (lens-facing) to use.
      * Only takes effect if called before
-     * {@link #startScan(LifecycleOwner, PreviewView, DecoderResultListener)}.
+     * {@link #start(LifecycleOwner, PreviewView, DecoderResultListener)}.
      * <p>
      * One of:
      * <ul>
@@ -131,9 +138,9 @@ public class BarcodeScanner
         }
     }
 
-    public void startScan(@NonNull final LifecycleOwner lifecycleOwner,
-                          @NonNull final PreviewView previewView,
-                          @NonNull final DecoderResultListener resultListener) {
+    public void start(@NonNull final LifecycleOwner lifecycleOwner,
+                      @NonNull final PreviewView previewView,
+                      @NonNull final DecoderResultListener resultListener) {
         cameraProviderFuture.addListener(
                 () -> {
                     try {
@@ -155,76 +162,94 @@ public class BarcodeScanner
 
                         final ImageCapture imageCapture = new ImageCapture.Builder().build();
 
-                        final ImageAnalysis.Analyzer analyzer = image -> {
-                            // The image provided has format ImageFormat.YUV_420_888.
-                            try (image) {
-                                // so we only take the Y data from plane 0
-                                final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+                        final ImageAnalysis.Analyzer analyzer = new ImageAnalysis.Analyzer() {
 
-                                final ByteBuffer yByteBuffer = yPlane.getBuffer();
-                                yByteBuffer.rewind();
-                                final byte[] yData = new byte[yByteBuffer.remaining()];
-                                yByteBuffer.get(yData);
+                            /** prevent duplicate scans. */
+                            @Nullable
+                            private String lastBarcodeText;
 
-                                final SimpleYLuminanceSource luminanceSource =
-                                        new SimpleYLuminanceSource(yData,
-                                                                   image.getWidth(),
-                                                                   image.getHeight(),
-                                                                   yPlane.getRowStride(),
-                                                                   yPlane.getPixelStride())
-                                                .flipHorizontal(isImageFlipped)
-                                                .rotate(image.getImageInfo().getRotationDegrees());
+                            @Override
+                            public void analyze(@NonNull final ImageProxy image) {
+                                // The image provided has format ImageFormat.YUV_420_888.
+                                try (image) {
+                                    // so we only take the Y data from plane 0
+                                    final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
 
-                                final Result result = decoder.decode(luminanceSource);
-                                if (result != null) {
-                                    mainExecutor.execute(() -> {
-                                        resultListener.onResult(result);
-                                        if (scanMode == ScanMode.Single) {
-                                            stopScanning();
-                                        }
-                                    });
-                                    if (scanMode == ScanMode.Single) {
-                                        // all done
-                                        return;
-                                    }
-                                }
+                                    final ByteBuffer yByteBuffer = yPlane.getBuffer();
+                                    yByteBuffer.rewind();
+                                    final byte[] yData = new byte[yByteBuffer.remaining()];
+                                    yByteBuffer.get(yData);
 
-                                // When using the DefaultDecoderFactory,
-                                // the zxing "MultiFormatReader" will send the possible
-                                // to the decoder during the above decoder.decode() call
-                                // When the decode() call is done (successful or failure),
-                                // we take that collection of ResultPoint's and
-                                // after potentially mirroring the points, forward
-                                // them to the user-settable listener.
-                                final List<ResultPoint> possibleResultPoints = decoder
-                                        .getPossibleResultPoints();
-                                if (resultPointsListener != null
-                                    && !possibleResultPoints.isEmpty()) {
-                                    mainExecutor.execute(() -> {
-                                        resultPointsListener.setImageSize(image.getWidth(),
-                                                                          image.getHeight());
+                                    final SimpleLuminanceSource luminanceSource =
+                                            new SimpleLuminanceSource(yData,
+                                                                      image.getWidth(),
+                                                                      image.getHeight(),
+                                                                      yPlane.getRowStride(),
+                                                                      yPlane.getPixelStride())
+                                                    .flipHorizontal(isImageFlipped)
+                                                    .rotate(image.getImageInfo()
+                                                                 .getRotationDegrees());
 
-                                        possibleResultPoints.forEach(point -> {
-                                            if (isImageFlipped) {
-                                                final float x = image.getWidth() - point.getX();
-                                                final float y = point.getY();
-                                                resultPointsListener.foundPossibleResultPoint(
-                                                        new ResultPoint(x, y));
+                                    final Result result = decoder.decode(luminanceSource);
+                                    if (result != null) {
+                                        mainExecutor.execute(() -> {
+                                            if (scanMode == ScanMode.Single) {
+                                                resultListener.onResult(result);
+                                                BarcodeScanner.this.stop();
                                             } else {
-                                                resultPointsListener.foundPossibleResultPoint(
-                                                        point);
+                                                // don't check on null/blank
+                                                if (!Objects.equals(lastBarcodeText,
+                                                                    result.getText())) {
+                                                    lastBarcodeText = result.getText();
+                                                    resultListener.onResult(result);
+                                                }
                                             }
                                         });
+
+                                        if (scanMode == ScanMode.Single) {
+                                            // all done
+                                            return;
+                                        }
+                                    }
+
+                                    // When using the DefaultDecoderFactory,
+                                    // the zxing "MultiFormatReader" will send the possible
+                                    // result-points to the decoder during the above
+                                    // decoder.decode() call.
+                                    // When the decode() call is done (successful or failure),
+                                    // we take that collection of ResultPoint's and
+                                    // after potentially mirroring the points, forward
+                                    // them to the user-settable listener.
+                                    final List<ResultPoint> possibleResultPoints = decoder
+                                            .getPossibleResultPoints();
+                                    if (resultPointsListener != null
+                                        && !possibleResultPoints.isEmpty()) {
+                                        mainExecutor.execute(() -> {
+                                            resultPointsListener.setImageSize(image.getWidth(),
+                                                                              image.getHeight());
+
+                                            possibleResultPoints.forEach(point -> {
+                                                if (isImageFlipped) {
+                                                    final float x = image.getWidth() - point.getX();
+                                                    final float y = point.getY();
+                                                    resultPointsListener.foundPossibleResultPoint(
+                                                            new ResultPoint(x, y));
+                                                } else {
+                                                    resultPointsListener.foundPossibleResultPoint(
+                                                            point);
+                                                }
+                                            });
+                                        });
+                                    }
+
+                                } catch (@NonNull final Throwable e) {
+                                    // catching Throwable, as we see StackOverflowError
+                                    // on some devices.
+                                    mainExecutor.execute(() -> {
+                                        resultListener.onError(e);
+                                        BarcodeScanner.this.stop();
                                     });
                                 }
-
-                            } catch (@NonNull final Throwable e) {
-                                // catching Throwable, as we see StackOverflowError
-                                // on some devices.
-                                mainExecutor.execute(() -> {
-                                    resultListener.onError(e);
-                                    stopScanning();
-                                });
                             }
                         };
 
@@ -253,7 +278,7 @@ public class BarcodeScanner
                 mainExecutor);
     }
 
-    public void stopScanning() {
+    public void stop() {
         synchronized (lock) {
             cameraControl = null;
             if (cameraProvider != null) {
@@ -278,80 +303,120 @@ public class BarcodeScanner
         private final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
 
         @Nullable
-        private DecoderType decoderType;
+        private DecoderFactory decoderFactory;
+        @Nullable
+        private ScanMode scanMode;
 
-        @NonNull
-        private ScanMode scanMode = ScanMode.Single;
-
-        public void setScanMode(@NonNull final ScanMode scanMode) {
-            this.scanMode = scanMode;
+        /**
+         * Set the {@link ScanMode}.
+         *
+         * @param mode to use
+         */
+        public void setScanMode(@NonNull final ScanMode mode) {
+            this.scanMode = mode;
         }
 
+        /**
+         * Set a custom {@link DecoderFactory}.
+         * <p>
+         * If set, the methods which set the decoder mode and hints will be ignored;
+         * otherwise a default factory will be created using those mode/hints.
+         *
+         * @param decoderFactory to use
+         *
+         * @return this
+         */
         @NonNull
-        public Builder setDecoderType(final int decoderType) {
-            this.decoderType = DecoderType.get(decoderType);
+        public Builder setDecoderFactory(@NonNull final DecoderFactory decoderFactory) {
+            this.decoderFactory = decoderFactory;
+            return this;
+        }
+
+        /**
+         * Set the desired barcode formats to scan.
+         *
+         * @param barcodeFormats names of {@link BarcodeFormat}s to scan for
+         *
+         * @return this
+         */
+        @NonNull
+        public Builder setBarcodeFormats(@NonNull final List<BarcodeFormat> barcodeFormats) {
+            hints.put(DecodeHintType.POSSIBLE_FORMATS,
+                      barcodeFormats.stream()
+                                    .map(Enum::name)
+                                    .collect(Collectors.toCollection(ArrayList::new)));
             return this;
         }
 
         @NonNull
-        public Builder setDecoderType(@NonNull final DecoderType decoderType) {
-            this.decoderType = decoderType;
+        public Builder setAlsoTryInverted(final boolean enabled) {
+            hints.put(DecodeHintType.ALSO_INVERTED, enabled);
             return this;
         }
 
         @NonNull
-        public Builder setCodeFamily(@Nullable final BarcodeFamily codeFamily) {
-            if (codeFamily != null) {
-                this.hints.put(DecodeHintType.POSSIBLE_FORMATS, codeFamily.formats);
-            } else {
-                this.hints.remove(DecodeHintType.POSSIBLE_FORMATS);
+        public Builder setTryHarder(final boolean enabled) {
+            hints.put(DecodeHintType.TRY_HARDER, enabled);
+            return this;
+        }
+
+        /**
+         * Add a hint.
+         * If the data type does not match the hint type, the hint is quietly ignored.
+         * <p>
+         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         *
+         * @param hintType to add
+         * @param hintData to add
+         *
+         * @return this
+         */
+        @NonNull
+        public Builder addHint(@NonNull final DecodeHintType hintType,
+                               @NonNull final Object hintData) {
+            if (hintType.getValueType().equals(Void.class)) {
+                if (hintData instanceof Boolean && (Boolean) hintData) {
+                    this.hints.put(hintType, Boolean.TRUE);
+                } else {
+                    this.hints.remove(hintType);
+                }
+            } else if (hintType.getValueType().isInstance(hintData)) {
+                this.hints.put(hintType, hintData);
             }
             return this;
         }
 
+        /**
+         * Add a collection of hints.
+         * If the data type does not match the hint type, the hint is quietly ignored.
+         * <p>
+         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         *
+         * @param args a Bundle with hints; may contain other options which will be ignored.
+         *
+         * @return this
+         */
         @NonNull
-        public Builder setHints(@Nullable final Map<DecodeHintType, Object> hints) {
-            if (hints != null) {
-                this.hints.putAll(hints);
-            }
-            return this;
-        }
-
-        @NonNull
-        public Builder setHints(@Nullable final Bundle hints) {
-            this.hints.putAll(parseHints(hints));
-            return this;
-        }
-
-        @NonNull
-        private Map<DecodeHintType, Object> parseHints(@Nullable final Bundle args) {
-            final Map<DecodeHintType, Object> result = new EnumMap<>(DecodeHintType.class);
-
-            if (args == null || args.isEmpty()) {
-                return result;
-            }
-
-            Arrays.stream(DecodeHintType.values())
-                  // This one is configured/used internally
-                  .filter(hintType -> hintType != DecodeHintType.NEED_RESULT_POINT_CALLBACK)
-                  .forEach(hintType -> {
-                      final String hintName = hintType.name();
-                      if (args.containsKey(hintName)) {
-                          if (hintType.getValueType().equals(Void.class)) {
-                              // Void hints are just flags: use the constant
-                              // specified by the DecodeHintType
-                              result.put(hintType, Boolean.TRUE);
-
-                          } else {
-                              final Object hintData = args.get(hintName);
-                              if (hintType.getValueType().isInstance(hintData)) {
-                                  result.put(hintType, hintData);
+        public Builder addHints(@Nullable final Bundle args) {
+            if (args != null && !args.isEmpty()) {
+                Arrays.stream(DecodeHintType.values())
+                      // This one is configured/used internally
+                      .filter(hintType -> hintType != DecodeHintType.NEED_RESULT_POINT_CALLBACK)
+                      .forEach(hintType -> {
+                          final String hintName = hintType.name();
+                          if (args.containsKey(hintName)) {
+                              if (hintType.getValueType().equals(Void.class)) {
+                                  this.hints.put(hintType, Boolean.TRUE);
+                              } else {
+                                  final Object hintData = args.get(hintName);
+                                  if (hintType.getValueType().isInstance(hintData)) {
+                                      this.hints.put(hintType, hintData);
+                                  }
                               }
                           }
-                      }
-                  });
-
-            return result;
+                      });
+            }
+            return this;
         }
 
         @NonNull

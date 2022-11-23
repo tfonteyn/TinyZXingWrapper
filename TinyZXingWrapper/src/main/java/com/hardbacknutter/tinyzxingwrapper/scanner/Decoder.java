@@ -20,19 +20,19 @@ public interface Decoder
      * <p>
      * Must not raise an exception.
      *
-     * @return a Result or null
+     * @return a Result or {@code null}
      */
     @Nullable
     Result decode(@NonNull LuminanceSource source);
 
     /**
-     * Call immediately after decode(), from the same thread.
+     * Call immediately after {@link #decode(LuminanceSource)}, from the same thread.
      * <p>
-     * The result is undefined while decode() is running.
+     * The result is undefined while {@link #decode(LuminanceSource)} is running.
      * <p>
-     * Optional to implement, this default implementation just returns an empty list.
+     * Optional to implement, this default implementation returns an empty list.
      *
-     * @return possible ResultPoint's from the last decode.
+     * @return possible {@link ResultPoint}'s from the last decode.
      */
     @NonNull
     default List<ResultPoint> getPossibleResultPoints() {
