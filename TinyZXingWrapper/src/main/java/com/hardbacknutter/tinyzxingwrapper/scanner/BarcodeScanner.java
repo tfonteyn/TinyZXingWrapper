@@ -39,8 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
-
 @SuppressWarnings({"ClassWithOnlyPrivateConstructors", "WeakerAccess"})
 public class BarcodeScanner
         implements LifecycleEventObserver {
@@ -361,8 +359,11 @@ public class BarcodeScanner
         }
 
         /**
-         * Add a hint.
+         * Add a generic hint.
          * If the data type does not match the hint type, the hint is quietly ignored.
+         * <p>
+         * {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} is NOT supported
+         * as it's used internally.
          * <p>
          * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
          *
@@ -389,6 +390,9 @@ public class BarcodeScanner
         /**
          * Add a collection of hints.
          * If the data type does not match the hint type, the hint is quietly ignored.
+         * <p>
+         * {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} is NOT supported
+         * as it's used internally.
          * <p>
          * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
          *
