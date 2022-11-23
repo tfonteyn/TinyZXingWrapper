@@ -196,7 +196,7 @@ public class ScanOptions {
      * @return the intent
      */
     @NonNull
-    Intent build(@NonNull final Context context) {
+    public Intent build(@NonNull final Context context) {
         intent.setComponent(new ComponentName(context, captureActivity))
               .setAction(ACTION)
               .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
