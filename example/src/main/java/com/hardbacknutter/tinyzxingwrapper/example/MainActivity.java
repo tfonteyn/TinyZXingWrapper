@@ -14,14 +14,13 @@ import com.hardbacknutter.tinyzxingwrapper.ScanIntentResult;
 import com.hardbacknutter.tinyzxingwrapper.ScanOptions;
 import com.hardbacknutter.tinyzxingwrapper.example.databinding.ActivityMainBinding;
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeFamily;
-import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderType;
 
 public class MainActivity
         extends AppCompatActivity {
 
     private ActivityMainBinding vb;
 
-    private final ActivityResultLauncher<ScanContract.Input> barcodeLauncher =
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher =
             registerForActivityResult(new ScanContract(), result -> {
                 if (result.isSuccess()) {
                     final String text = getString(R.string.msg_barcode,
@@ -63,7 +62,6 @@ public class MainActivity
 
         vb.basicScan.setOnClickListener(this::scanBarcode);
         vb.isbnScan.setOnClickListener(this::scanProduct);
-        vb.withScanType.setOnClickListener(this::scanBarcodeInverted);
         vb.frontCamera.setOnClickListener(this::scanBarcodeFrontCamera);
     }
 
@@ -72,19 +70,15 @@ public class MainActivity
     }
 
     private void scanProduct(@NonNull final View view) {
-        barcodeLauncher.launch(new ScanOptions().setBarcodeFamily(BarcodeFamily.Product));
-    }
-
-    private void scanBarcodeInverted(@NonNull final View view) {
-        final ScanOptions options = new ScanOptions();
-        options.setDecoderType(DecoderType.Inverted);
+        final ScanOptions options = new ScanOptions()
+                .setBarcodeFormats(BarcodeFamily.PRODUCT);
         barcodeLauncher.launch(options);
     }
 
     private void scanBarcodeFrontCamera(@NonNull final View view) {
-        final ScanOptions options = new ScanOptions();
-        options.setPrompt(getString(R.string.msg_scan_prompt));
-        options.setUseCameraWithLensFacing(CameraSelector.LENS_FACING_FRONT);
+        final ScanOptions options = new ScanOptions()
+                .setPrompt(getString(R.string.msg_scan_prompt))
+                .setUseCameraWithLensFacing(CameraSelector.LENS_FACING_FRONT);
         barcodeLauncher.launch(options);
     }
 
