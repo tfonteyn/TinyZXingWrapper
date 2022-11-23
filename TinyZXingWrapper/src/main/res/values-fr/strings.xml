@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tzw_status_text">Placez un code-barres sous le viseur pour le scanner.</string>
+</resources>

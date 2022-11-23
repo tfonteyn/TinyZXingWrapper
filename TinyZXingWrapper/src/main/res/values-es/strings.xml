@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tzw_status_text">Coloque un código de barras debajo del visor para escanearlo.</string>
+</resources>
