@@ -249,10 +249,10 @@ public class ScanOptions {
         /**
          * Advanced usage. Request to include metadata in the result intent.
          * <p>
-         * Type: csv String list with {@link ResultMetadataType} key names.
+         * Type: a {@code List<String>} with {@link ResultMetadataType} key names.
          * Unknown (or misspelled) entries will be ignored.
          *
-         * @see ScanIntentResult#createActivityResultIntent(Context, Result, String)
+         * @see ScanIntentResult#createActivityResultIntent(Context, Result, List)
          */
         public static final String RETURN_META_DATA = "RETURN_META_DATA";
 
