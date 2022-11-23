@@ -11,6 +11,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,10 +61,10 @@ public final class ScanIntentResult {
      * Will always contain {@link Success#BARCODE_TEXT} and {@link Success#BARCODE_FORMAT}.
      * Anything else depends on what is requested with {@link ScanOptions.Option#RETURN_META_DATA}.
      *
-     * @param context             Current context
-     * @param result              the ZXing result value object
-     * @param csvWithMetadataKeys a csv String list with meta-data keys to send back
-     *                            if available.
+     * @param context      Current context
+     * @param result       the ZXing result value object
+     * @param metadataKeys a {@code List<String>} with {@link ResultMetadataType} key names
+     *                     to send back if available.
      *
      * @return the Intent
      */
@@ -71,7 +72,7 @@ public final class ScanIntentResult {
     public static Intent createActivityResultIntent(@SuppressWarnings("unused")
                                                     @NonNull final Context context,
                                                     @NonNull final Result result,
-                                                    @Nullable final String csvWithMetadataKeys) {
+                                                    @Nullable final List<String> metadataKeys) {
 
         final Intent intent = new Intent()
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -79,11 +80,11 @@ public final class ScanIntentResult {
                 .putExtra(Success.BARCODE_FORMAT, result.getBarcodeFormat().toString());
 
         final Map<ResultMetadataType, ?> metadata = result.getResultMetadata();
-        if (metadata != null && csvWithMetadataKeys != null) {
+        if (metadata != null && metadataKeys != null) {
             metadata.entrySet()
                     .stream()
                     // only the ones the client requested
-                    .filter(entry -> csvWithMetadataKeys.contains(entry.getKey().name()))
+                    .filter(entry -> metadataKeys.contains(entry.getKey().name()))
                     // paranoia...
                     .filter(entry -> entry.getValue() != null)
                     .forEach(entry -> {

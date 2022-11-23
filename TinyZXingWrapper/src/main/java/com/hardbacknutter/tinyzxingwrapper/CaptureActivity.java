@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.button.MaterialButton;
 import com.google.zxing.Result;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
@@ -48,15 +49,15 @@ public class CaptureActivity
     @Nullable
     private Integer lensFacing;
     @Nullable
-    private String metaDataToReturn;
+    private List<String> metaDataToReturn;
+
     private final DecoderResultListener decoderResultListener = new DecoderResultListener() {
         @Override
         public void onResult(@NonNull final Result result) {
             final String text = result.getText();
             if (text != null && !text.isBlank()) {
                 final Intent intent = ScanIntentResult.createActivityResultIntent(
-                        CaptureActivity.this,
-                        result, metaDataToReturn);
+                        CaptureActivity.this, result, metaDataToReturn);
                 setResult(Activity.RESULT_OK, intent);
                 finish();
             }
@@ -105,7 +106,7 @@ public class CaptureActivity
 
         Bundle args = getIntent().getExtras();
         if (args != null) {
-            metaDataToReturn = args.getString(ScanOptions.Option.RETURN_META_DATA, null);
+            metaDataToReturn = args.getStringArrayList(ScanOptions.Option.RETURN_META_DATA);
 
             builder.addHints(args);
         }
