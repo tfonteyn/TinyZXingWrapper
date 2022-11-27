@@ -1,8 +1,10 @@
 # TinyZXingWrapper
-A tiny android wrapper for the ZXing barcode scanner library. Uses CameraX.
+A tiny android wrapper for the ZXing barcode scanner library (https://github.com/zxing/zxing). 
 
-Written as a replacement for https://github.com/journeyapps/zxing-android-embedded.
+- Uses CameraX.
 
-Not call-compatible, but it should be (it is!) easy to migrate to.
+- Written as a replacement for https://github.com/journeyapps/zxing-android-embedded.
+  Not call-compatible, but it should be (it is!) easy to migrate to.
 
-Minimum API 26 (Android 8.0)
+- Minimum API 26 (Android 8.0)
+- Compiled against ZXing core 3.5.1
