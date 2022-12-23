@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.google.zxing.BarcodeFormat;
 
-import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 
 /**

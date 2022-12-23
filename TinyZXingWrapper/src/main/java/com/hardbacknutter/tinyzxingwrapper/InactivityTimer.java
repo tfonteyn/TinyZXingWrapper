@@ -100,13 +100,13 @@ final class InactivityTimer
     @Override
     public void onStateChanged(@NonNull final LifecycleOwner source,
                                @NonNull final Lifecycle.Event event) {
-        //noinspection EnumSwitchStatementWhichMissesCases
+        //noinspection EnumSwitchStatementWhichMissesCases,SwitchStatementWithoutDefaultBranch
         switch (event) {
             case ON_RESUME:
                 synchronized (registered) {
                     if (!registered.get()) {
                         context.registerReceiver(powerStatusReceiver,
-                                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                                                 new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                         registered.set(true);
                     }
                 }

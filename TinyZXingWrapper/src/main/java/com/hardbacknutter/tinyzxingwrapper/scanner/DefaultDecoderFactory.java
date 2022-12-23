@@ -14,7 +14,8 @@ import java.util.Map;
  * using a {@link MultiFormatReader} and any provided {@link DecodeHintType} hints.
  */
 @SuppressWarnings("WeakerAccess")
-public class DefaultDecoderFactory implements DecoderFactory {
+public class DefaultDecoderFactory
+        implements DecoderFactory {
 
     private final Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
 

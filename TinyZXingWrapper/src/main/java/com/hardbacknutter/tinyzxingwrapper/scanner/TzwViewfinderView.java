@@ -28,11 +28,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.zxing.ResultPoint;
-import com.hardbacknutter.tinyzxingwrapper.R;
-import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultPointsListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.hardbacknutter.tinyzxingwrapper.R;
 
 /**
  * Mainly meant as cosmetic feedback to the end-user.
@@ -41,6 +41,7 @@ import java.util.List;
  * It adds a laser scanner animation and result points.
  * Both can be enabled/disabled - if you disable both, this View does nothing.
  */
+@SuppressWarnings("unused")
 public class TzwViewfinderView
         extends View
         implements DecoderResultPointsListener {
@@ -93,7 +94,8 @@ public class TzwViewfinderView
         final Resources resources = getResources();
         final Resources.Theme theme = getContext().getTheme();
 
-        @SuppressWarnings("resource") final TypedArray attributes = getContext()
+        @SuppressWarnings("resource")
+        final TypedArray attributes = getContext()
                 .obtainStyledAttributes(attrs, R.styleable.TzwViewfinderView);
 
         showLaser = attributes.getBoolean(
@@ -113,17 +115,14 @@ public class TzwViewfinderView
         attributes.recycle();
     }
 
-    @SuppressWarnings("unused")
     public boolean isShowLaser() {
         return showLaser;
     }
 
-    @SuppressWarnings("unused")
     public void setShowLaser(final boolean showLaser) {
         this.showLaser = showLaser;
     }
 
-    @SuppressWarnings("unused")
     public void setLaserColor(@ColorInt final int color) {
         this.laserColor = color;
     }
@@ -132,12 +131,10 @@ public class TzwViewfinderView
         return showResultPoints;
     }
 
-    @SuppressWarnings("unused")
     public void setShowResultPoints(final boolean visible) {
         this.showResultPoints = visible;
     }
 
-    @SuppressWarnings("unused")
     public void setResultPointColor(@ColorInt final int color) {
         this.resultPointColor = color;
     }
@@ -153,8 +150,8 @@ public class TzwViewfinderView
 
             final int middle = getHeight() / 2 + getTop();
             canvas.drawRect(getLeft() + 2, middle - 1,
-                    getRight() - 2, middle + 1,
-                    paint);
+                            getRight() - 2, middle + 1,
+                            paint);
         }
 
         if (showResultPoints) {
@@ -170,14 +167,14 @@ public class TzwViewfinderView
 
             if (!previousResultPoints.isEmpty()) {
                 drawResultPoints(canvas, previousResultPoints, scaleX, scaleY,
-                        PREVIOUS_POINT_SIZE, PREVIOUS_POINT_OPACITY);
+                                 PREVIOUS_POINT_SIZE, PREVIOUS_POINT_OPACITY);
             }
 
             synchronized (resultPoints) {
                 if (!resultPoints.isEmpty()) {
                     previousResultPoints.addAll(resultPoints);
                     drawResultPoints(canvas, resultPoints, scaleX, scaleY,
-                            POINT_SIZE, POINT_OPACITY);
+                                     POINT_SIZE, POINT_OPACITY);
                 }
             }
         }
