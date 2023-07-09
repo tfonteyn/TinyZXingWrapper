@@ -150,7 +150,7 @@ public class CaptureActivity
     }
 
     private void startScanner() {
-        //noinspection ConstantConditions
+        //noinspection DataFlowIssue
         scanner.start(this, previewView, decoderResultListener);
     }
 

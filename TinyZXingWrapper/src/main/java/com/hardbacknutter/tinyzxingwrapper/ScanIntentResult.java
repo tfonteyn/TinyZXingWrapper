@@ -166,7 +166,7 @@ public final class ScanIntentResult {
     public BarcodeFormat getFormat() {
         if (success) {
             try {
-                //noinspection ConstantConditions
+                //noinspection DataFlowIssue
                 return BarcodeFormat.valueOf(intent.getStringExtra(Success.BARCODE_FORMAT));
             } catch (@NonNull final IllegalArgumentException | NullPointerException ignore) {
                 // ignore
@@ -183,7 +183,7 @@ public final class ScanIntentResult {
     @Nullable
     public String getUpcEanExtension() {
         if (success) {
-            //noinspection ConstantConditions
+            //noinspection DataFlowIssue
             final String text = intent.getStringExtra(ResultMetadataType.UPC_EAN_EXTENSION.name());
             if (text != null && !text.isBlank()) {
                 return text;

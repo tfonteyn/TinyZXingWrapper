@@ -187,6 +187,7 @@ public class ScanOptions {
      */
     @NonNull
     public Bundle getExtras() {
+        //noinspection DataFlowIssue
         return intent.getExtras();
     }
 

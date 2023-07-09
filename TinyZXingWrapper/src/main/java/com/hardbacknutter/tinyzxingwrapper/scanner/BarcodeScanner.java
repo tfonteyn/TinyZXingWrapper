@@ -251,7 +251,7 @@ public class BarcodeScanner
                                                       @NonNull final List<ResultPoint> points) {
 
                                 mainExecutor.execute(() -> {
-                                    //noinspection ConstantConditions
+                                    //noinspection DataFlowIssue
                                     resultPointsListener.setImageSize(image.getWidth(),
                                                                       image.getHeight());
                                     points.forEach(point -> {
