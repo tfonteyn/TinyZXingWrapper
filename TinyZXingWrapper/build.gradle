@@ -22,28 +22,28 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
 }
 
 android {
-    namespace 'com.hardbacknutter.tinyzxingwrapper'
-    compileSdkVersion project.androidTargetSdk
+    namespace = "com.hardbacknutter.tinyzxingwrapper"
+    compileSdk = project.target_sdk_version
 
-    resourcePrefix "tzw_"
+    resourcePrefix("tzw_")
 
     signingConfigs {
         release {
-            keyAlias props['sign.keyAlias']
-            keyPassword props['sign.keyPassword']
-            storeFile file(props['sign.storeFile'])
-            storePassword props['sign.storePassword']
+            storeFile file(props["sign.storeFile"])
+            storePassword props["sign.storePassword"]
+            keyAlias props["sign.keyAlias"]
+            keyPassword props["sign.keyPassword"]
         }
     }
 
     defaultConfig {
-        minSdk project.androidMinimumSdk
-        targetSdk project.androidTargetSdk
+        minSdk = project.min_sdk_version
+        targetSdk = project.target_sdk_version
 
-        signingConfig signingConfigs.release
+        signingConfig(signingConfigs.release)
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -51,16 +51,16 @@ android {
 
         }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro")
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
 
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -72,7 +72,7 @@ android {
     }
 
     lint {
-        abortOnError false
+        abortOnError = false
     }
 
     libraryVariants.all {
@@ -83,7 +83,7 @@ android {
 }
 
 dependencies {
-    api "com.google.zxing:core:${zxing_core_version}"
+    api("com.google.zxing:core:${zxing_core_version}")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
 

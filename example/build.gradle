@@ -21,58 +21,59 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
 }
 
 android {
-    namespace 'com.hardbacknutter.tinyzxingwrapper.example'
-    compileSdkVersion project.androidTargetSdk
+    namespace = "com.hardbacknutter.tinyzxingwrapper.example"
+    compileSdk = project.target_sdk_version
 
     signingConfigs {
         release {
-            keyAlias props['sign.keyAlias']
-            keyPassword props['sign.keyPassword']
-            storeFile file(props['sign.storeFile'])
-            storePassword props['sign.storePassword']
+            storeFile file(props["sign.storeFile"])
+            storePassword props["sign.storePassword"]
+            keyAlias props["sign.keyAlias"]
+            keyPassword props["sign.keyPassword"]
         }
     }
 
     defaultConfig {
-        applicationId "com.hardbacknutter.tinyzxingwrapper.example"
-        versionCode 1
-        versionName "1.0.0"
+        applicationId = "com.hardbacknutter.tinyzxingwrapper.example"
+        versionCode = 1
+        versionName = "1.0.0"
 
-        minSdk project.androidMinimumSdk
-        targetSdk project.androidTargetSdk
+        minSdk = project.min_sdk_version
+        targetSdk = project.target_sdk_version
         
-        signingConfig signingConfigs.release
+        signingConfig(signingConfigs.release)
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro")
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
 
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
-        viewBinding true
+        viewBinding = true
+        buildConfig = true
     }
 
     lint {
-        abortOnError false
+        abortOnError = false
     }
 }
 
 dependencies {
     //TODO: add instruction steps here how to include the aar file
     // directly from a github release download
-    implementation project(':TinyZXingWrapper')
+    implementation project(path: ":TinyZXingWrapper")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
 
