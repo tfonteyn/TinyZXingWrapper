@@ -23,7 +23,7 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
 
 android {
     namespace = "com.hardbacknutter.tinyzxingwrapper"
-    compileSdk = project.target_sdk_version
+    compileSdk = rootProject.ext.compileSdkVersion
 
     resourcePrefix("tzw_")
 
@@ -37,8 +37,8 @@ android {
     }
 
     defaultConfig {
-        minSdk = project.min_sdk_version
-        targetSdk = project.target_sdk_version
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
 
         signingConfig(signingConfigs.release)
 
@@ -77,27 +77,27 @@ android {
 
     libraryVariants.all {
         final variant -> variant.outputs.all {
-            outputFileName = "${project.name}-${variant.name}-${tiny_zxing_wrapper_version}.aar"
+            outputFileName = "${project.name}-${variant.name}-${tinyZXingWrapperVersion}.aar"
         }
     }
 }
 
 dependencies {
-    api("com.google.zxing:core:${zxing_core_version}")
+    api("com.google.zxing:core:${zxingCoreVersion}")
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugar_version}")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugarVersion}")
 
-    implementation("androidx.activity:activity:${androidx_activity_version}")
-    implementation("androidx.fragment:fragment:${androidx_fragment_version}")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidx_lifecycle_version}")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$androidx_lifecycle_version")
+    implementation("androidx.activity:activity:${androidxActivityVersion}")
+    implementation("androidx.fragment:fragment:${androidxFragmentVersion}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidxLifecycleVersion}")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$androidxLifecycleVersion")
 
-    implementation("androidx.camera:camera-core:${androidx_camerax_version}")
-    implementation("androidx.camera:camera-camera2:${androidx_camerax_version}")
-    implementation("androidx.camera:camera-lifecycle:${androidx_camerax_version}")
-    implementation("androidx.camera:camera-view:${androidx_camerax_version}")
-    implementation("androidx.camera:camera-extensions:${androidx_camerax_version}")
+    implementation("androidx.camera:camera-core:${androidxCardviewVersion}")
+    implementation("androidx.camera:camera-camera2:${androidxCardviewVersion}")
+    implementation("androidx.camera:camera-lifecycle:${androidxCardviewVersion}")
+    implementation("androidx.camera:camera-view:${androidxCardviewVersion}")
+    implementation("androidx.camera:camera-extensions:${androidxCardviewVersion}")
 
     // https://github.com/material-components/material-components-android/releases
-    implementation("com.google.android.material:material:${google_material_version}")
+    implementation("com.google.android.material:material:${googleMaterialVersion}")
 }
