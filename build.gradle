@@ -20,7 +20,7 @@ ext {
     compileSdkVersion = 34
 
     // https://github.com/zxing/zxing
-    zxingCoreVersion = "3.5.2"
+    zxingCoreVersion = '3.5.3'
 
     // https://github.com/google/desugar_jdk_libs
     desugarVersion = '2.0.4'
