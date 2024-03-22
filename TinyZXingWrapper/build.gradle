@@ -20,6 +20,14 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
         props.load(new FileInputStream(file))
     }
 }
+kotlin {
+    jvmToolchain rootProject.ext.toolChain
+}
+
+ext {
+    // build version for the library
+    tinyZXingWrapperVersion = "1.0.0"
+}
 
 android {
     namespace = "com.hardbacknutter.tinyzxingwrapper"
@@ -58,13 +66,13 @@ android {
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
 
         coreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = 11
+        jvmTarget = rootProject.ext.toolChain
     }
 
     buildFeatures {
@@ -87,8 +95,8 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:${desugarVersion}")
 
-    implementation("androidx.activity:activity:${androidxActivityVersion}")
-    implementation("androidx.fragment:fragment:${androidxFragmentVersion}")
+    implementation("androidx.activity:activity-ktx:${androidxActivityVersion}")
+    implementation("androidx.fragment:fragment-ktx:${androidxFragmentVersion}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${androidxLifecycleVersion}")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$androidxLifecycleVersion")
 
