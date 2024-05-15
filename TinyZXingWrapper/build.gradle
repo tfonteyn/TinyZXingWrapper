@@ -83,8 +83,8 @@ android {
         abortOnError = false
     }
 
-    libraryVariants.all {
-        final variant -> variant.outputs.all {
+    libraryVariants.configureEach {
+        final variant -> variant.outputs.configureEach {
             outputFileName = "${project.name}-${variant.name}-${tinyZXingWrapperVersion}.aar"
         }
     }
