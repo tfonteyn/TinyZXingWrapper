@@ -42,13 +42,11 @@ public class MainActivity
                                 vb.lastScan.setText(R.string.err_inactivity);
                                 break;
                             default:
-                                vb.lastScan.setText(
-                                        getString(R.string.err_unknown, reason));
+                                vb.lastScan.setText(getString(R.string.err_unknown, reason));
                                 break;
                         }
                     } else {
-                        vb.lastScan.setText(
-                                getString(R.string.err_unknown, "???"));
+                        vb.lastScan.setText(R.string.err_cancelled);
                     }
                 }
             });

@@ -8,6 +8,7 @@
     <string name="btn_scan_inverted">Scan Inverted</string>
     <string name="btn_front_camera">Use front Camera</string>
 
+    <string name="err_cancelled">Cancelled</string>
     <string name="err_permission">Cancelled due to missing camera permission</string>
     <string name="err_hard_timeout">Cancelled due to hard timeout</string>
     <string name="err_inactivity">Cancelled due to inactivity</string>
