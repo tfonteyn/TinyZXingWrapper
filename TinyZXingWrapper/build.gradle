@@ -26,7 +26,7 @@ kotlin {
 
 ext {
     // build version for the library
-    tinyZXingWrapperVersion = "1.0.0"
+    tinyZXingWrapperVersion = "1.0.1"
 }
 
 android {
