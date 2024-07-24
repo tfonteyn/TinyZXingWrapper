@@ -24,4 +24,4 @@ Add a repository:
 
 Gradle dependency string:
 
-    com.hardbacknutter.tinyzxingwrapper:TinyZXingWrapper:1.0.0:release@aar
+    com.hardbacknutter.tinyzxingwrapper:TinyZXingWrapper:1.0.1:release@aar
