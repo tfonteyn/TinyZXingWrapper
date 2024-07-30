@@ -84,9 +84,10 @@ android {
     }
 
     libraryVariants.configureEach {
-        final variant -> variant.outputs.configureEach {
-            outputFileName = "${project.name}-${variant.name}-${tinyZXingWrapperVersion}.aar"
-        }
+        final variant ->
+            variant.outputs.configureEach {
+                outputFileName = "${project.name}-${variant.name}-${tinyZXingWrapperVersion}.aar"
+            }
     }
 }
 
@@ -108,4 +109,32 @@ dependencies {
 
     // https://github.com/material-components/material-components-android/releases
     implementation("com.google.android.material:material:${googleMaterialVersion}")
+}
+
+tasks.register("javadocGenerate", Javadoc) {
+    description "Generates Javadoc for the TinyZXingWrapper library"
+    source = project.android.sourceSets.main.java.srcDirs
+    options {
+        setMemberLevel(JavadocMemberLevel.PUBLIC)
+        links("https://developer.android.com/reference/")
+    }
+    // android.jar
+    classpath += project.files(project.android.getBootClasspath())
+    // androidx (and other) dependencies
+    classpath += files(android.libraryVariants.collect { final variant ->
+        variant.getJavaCompileProvider().get().classpath.files
+    })
+    failOnError false
+}
+
+tasks.register('javadocJar', Jar) {
+    description = "Creates a Javadoc Jar for the TinyZXingWrapper library." +
+            "The result can be found in 'build/outputs/docs/"
+    dependsOn javadocGenerate
+    from javadocGenerate.destinationDir
+    // create a subfolder in the jar for all the html files
+    into("docs")
+    // Where to store the jar file
+    destinationDirectory = project.layout.buildDirectory.dir("outputs/docs")
+    archiveFileName = "${project.name}-docs-${tinyZXingWrapperVersion}.jar"
 }
