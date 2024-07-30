@@ -7,6 +7,12 @@ import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+/**
+ * A simple {@link ActivityResultContract}.
+ *
+ * @see ScanOptions
+ * @see ScanIntentResult
+ */
 public class ScanContract
         extends ActivityResultContract<ScanOptions, ScanIntentResult> {
 

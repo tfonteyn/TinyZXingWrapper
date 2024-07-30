@@ -47,6 +47,11 @@ public final class ScanIntentResult {
     /**
      * Decode an intent as received by {@link ScanContract#parseResult(int, Intent)}
      * into a user friendly value object {@link ScanIntentResult}.
+     *
+     * @param resultCode from {@link ScanContract#parseResult(int, Intent)}
+     * @param intent     from {@link ScanContract#parseResult(int, Intent)}
+     *
+     * @return the result
      */
     @NonNull
     public static ScanIntentResult parseActivityResultIntent(final int resultCode,
@@ -193,13 +198,20 @@ public final class ScanIntentResult {
     }
 
     /**
-     * @return the full result intent
+     * Get the full result intent.
+     *
+     * @return the intent
      */
     @Nullable
     public Intent getIntent() {
         return intent;
     }
 
+    /**
+     * Get the result code.
+     *
+     * @return code
+     */
     public int getResultCode() {
         return resultCode;
     }
@@ -232,6 +244,9 @@ public final class ScanIntentResult {
                + '}';
     }
 
+    /**
+     * Bundle keys for returning a successful scan result.
+     */
     public static final class Success {
 
         /**
@@ -253,6 +268,9 @@ public final class ScanIntentResult {
         }
     }
 
+    /**
+     * Bundle keys for returning a scan failure.
+     */
     public static final class Failure {
 
         /**

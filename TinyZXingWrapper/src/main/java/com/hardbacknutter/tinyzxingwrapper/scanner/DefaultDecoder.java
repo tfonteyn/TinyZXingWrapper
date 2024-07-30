@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * The default implementation of a {@link Decoder}.
  */
 @SuppressWarnings("WeakerAccess")
 public class DefaultDecoder

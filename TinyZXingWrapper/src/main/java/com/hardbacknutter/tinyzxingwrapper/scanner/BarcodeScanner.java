@@ -40,6 +40,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import com.hardbacknutter.tinyzxingwrapper.ScanContract;
+
+/**
+ * The main scanner code.
+ * <ul>
+ *     <li>Use {@link ScanContract} with the default capture activity.</li>
+ *     <li>Use {@link ScanContract} with your own custom capture activity.</li>
+ *     <li>Use directly by constructing an instance with the {@link Builder}</li>
+ * </ul>
+ */
 @SuppressWarnings({"ClassWithOnlyPrivateConstructors", "WeakerAccess"})
 public class BarcodeScanner
         implements LifecycleEventObserver {
@@ -139,6 +149,13 @@ public class BarcodeScanner
         }
     }
 
+    /**
+     * Start the scanner.
+     *
+     * @param lifecycleOwner the caller
+     * @param previewView    where to show the preview
+     * @param resultListener to receive the result
+     */
     public void start(@NonNull final LifecycleOwner lifecycleOwner,
                       @NonNull final PreviewView previewView,
                       @NonNull final DecoderResultListener resultListener) {
@@ -294,6 +311,9 @@ public class BarcodeScanner
                 mainExecutor);
     }
 
+    /**
+     * Stop the scanner.
+     */
     public void stop() {
         synchronized (lock) {
             cameraControl = null;
@@ -461,6 +481,13 @@ public class BarcodeScanner
             return this;
         }
 
+        /**
+         * Create the scanner.
+         *
+         * @param context Current context
+         *
+         * @return an initialized scanner
+         */
         @NonNull
         public BarcodeScanner build(@NonNull final Context context) {
             return new BarcodeScanner(context, this);

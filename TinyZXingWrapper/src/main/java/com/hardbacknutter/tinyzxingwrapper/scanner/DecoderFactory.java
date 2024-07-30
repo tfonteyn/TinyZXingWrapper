@@ -10,6 +10,11 @@ import androidx.annotation.NonNull;
 @FunctionalInterface
 public interface DecoderFactory {
 
+    /**
+     * Factory constructor.
+     *
+     * @return new Decode instance
+     */
     @NonNull
     Decoder createDecoder();
 }

@@ -13,6 +13,8 @@ public interface DecoderResultListener {
 
     /**
      * Barcode was successfully decoded.
+     *
+     * @param result from the scanner
      **/
     @UiThread
     void onResult(@NonNull Result result);

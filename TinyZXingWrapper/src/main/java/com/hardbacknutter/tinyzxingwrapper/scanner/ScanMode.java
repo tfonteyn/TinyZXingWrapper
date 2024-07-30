@@ -1,8 +1,17 @@
 package com.hardbacknutter.tinyzxingwrapper.scanner;
 
+/**
+ * Possible scan modes.
+ */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public enum ScanMode {
+    /**
+     * Do a single scan, stop the scanner, and return the result.
+     */
     Single(0),
+    /**
+     * Keep scanning, returning the results after each scan.
+     */
     Continuous(1);
 
     private final int mode;
@@ -11,10 +20,14 @@ public enum ScanMode {
         this.mode = mode;
     }
 
-    public int getAsInt() {
-        return mode;
-    }
-
+    /**
+     * Helper method for converting a previously stored in from {@link #getAsInt()}
+     * back to the enum value.
+     *
+     * @param mode to lookup
+     *
+     * @return enum value
+     */
     public static ScanMode getMode(final int mode) {
         switch (mode) {
             case 1:
@@ -23,5 +36,15 @@ public enum ScanMode {
             default:
                 return Single;
         }
+    }
+
+    /**
+     * Helper method to retrieve the int value.
+     * e.g. for storing in Preferences.
+     *
+     * @return int
+     */
+    public int getAsInt() {
+        return mode;
     }
 }

@@ -72,6 +72,8 @@ public class ScanOptions {
      * @param list of {@link BarcodeFormat}s to try decoding
      *
      * @return this
+     *
+     * @see DecodeHintType#POSSIBLE_FORMATS
      */
     @NonNull
     public ScanOptions setBarcodeFormats(@NonNull final List<BarcodeFormat> list) {
@@ -84,12 +86,30 @@ public class ScanOptions {
         return this;
     }
 
+    /**
+     * If true, also tries to decode as inverted image.
+     *
+     * @param enabled flag
+     *
+     * @return this
+     *
+     * @see DecodeHintType#ALSO_INVERTED
+     */
     @NonNull
     public ScanOptions setAlsoTryInverted(final boolean enabled) {
         intent.putExtra(DecodeHintType.ALSO_INVERTED.name(), enabled);
         return this;
     }
 
+    /**
+     * Spend more time to try to find a barcode; optimize for accuracy, not speed.
+     *
+     * @param enabled flag
+     *
+     * @return this
+     *
+     * @see DecodeHintType#TRY_HARDER
+     */
     @NonNull
     public ScanOptions setTryHarder(final boolean enabled) {
         intent.putExtra(DecodeHintType.TRY_HARDER.name(), enabled);
@@ -123,6 +143,8 @@ public class ScanOptions {
      * Use {@code ""} for no prompt at all.
      *
      * @param prompt the prompt to display
+     *
+     * @return this
      */
     @NonNull
     public final ScanOptions setPrompt(@Nullable final String prompt) {
@@ -140,6 +162,8 @@ public class ScanOptions {
      * The returned {@code intent} will contain the
      * key {@link ScanIntentResult.Failure#FAILURE_REASON} with
      * value {@link ScanIntentResult.Failure#REASON_TIMEOUT}.
+     *
+     * @param timeout in milliseconds
      *
      * @return this
      */
@@ -160,6 +184,8 @@ public class ScanOptions {
      * key {@link ScanIntentResult.Failure#FAILURE_REASON} with
      * value {@link ScanIntentResult.Failure#REASON_INACTIVITY}.
      *
+     * @param timeout in milliseconds
+     *
      * @return this
      */
     @NonNull
@@ -173,6 +199,8 @@ public class ScanOptions {
      * to the default {@link CaptureActivity}.
      *
      * @param captureActivity the class, or {@code null} to use the default.
+     *
+     * @return this
      */
     @NonNull
     public ScanOptions setCaptureActivity(@Nullable final Class<?> captureActivity) {
@@ -193,6 +221,8 @@ public class ScanOptions {
 
     /**
      * Create a scan intent with the specified options.
+     *
+     * @param context Current context
      *
      * @return the intent
      */
@@ -241,7 +271,6 @@ public class ScanOptions {
          *     <li>{@link CameraSelector#LENS_FACING_BACK}</li>
          * </ul>
          * Default: not set; the device will normally pick the 'best' back-facing camera.
-         * <p>
          *
          * @see ScanOptions#setUseCameraWithLensFacing(int)
          */

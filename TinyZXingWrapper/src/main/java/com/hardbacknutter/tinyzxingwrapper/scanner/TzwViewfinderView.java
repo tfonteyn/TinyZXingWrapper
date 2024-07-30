@@ -35,13 +35,13 @@ import java.util.List;
 import com.hardbacknutter.tinyzxingwrapper.R;
 
 /**
- * Mainly meant as cosmetic feedback to the end-user.
- * <p>
- * This view is overlaid on top of the camera preview.
+ * This view can be overlaid on top of the camera preview.
  * It adds a laser scanner animation and result points.
  * Both can be enabled/disabled - if you disable both, this View does nothing.
+ * <p>
+ * Mainly meant as cosmetic feedback to the end-user.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class TzwViewfinderView
         extends View
         implements DecoderResultPointsListener {
@@ -81,10 +81,31 @@ public class TzwViewfinderView
     private int imageWidth;
     private int imageHeight;
 
+    /**
+     * Simple constructor to use when creating a view from code.
+     *
+     * @param context The Context the view is running in, through which it can
+     *                access the current theme, resources, etc.
+     */
     public TzwViewfinderView(@NonNull final Context context) {
         this(context, null);
     }
 
+    /**
+     * Constructor that is called when inflating a view from XML. This is called
+     * when a view is being constructed from an XML file, supplying attributes
+     * that were specified in the XML file. This version uses a default style of
+     * 0, so the only attribute values applied are those in the Context's Theme
+     * and the given AttributeSet.
+     *
+     * <p>
+     * The method onFinishInflate() will be called after all children have been
+     * added.
+     *
+     * @param context The Context the view is running in, through which it can
+     *                access the current theme, resources, etc.
+     * @param attrs   The attributes of the XML tag that is inflating the view.
+     */
     public TzwViewfinderView(@NonNull final Context context,
                              @Nullable final AttributeSet attrs) {
         super(context, attrs);
@@ -115,26 +136,60 @@ public class TzwViewfinderView
         attributes.recycle();
     }
 
+    /**
+     * Will the laser line be visible.
+     *
+     * @return flag
+     */
     public boolean isShowLaser() {
         return showLaser;
     }
 
-    public void setShowLaser(final boolean showLaser) {
-        this.showLaser = showLaser;
+    /**
+     * Set the laser line visibility.
+     *
+     * @param visible flag
+     */
+    public void setShowLaser(final boolean visible) {
+        this.showLaser = visible;
     }
 
+    /**
+     * Set the laser line color.
+     *
+     * @param color a ColorInt
+     *
+     * @see #setShowLaser(boolean)
+     */
     public void setLaserColor(@ColorInt final int color) {
         this.laserColor = color;
     }
 
+    /**
+     * Will the result-points be visible.
+     *
+     * @return flag
+     */
     public boolean isShowResultPoints() {
         return showResultPoints;
     }
 
+    /**
+     * Set the result-points visibility.
+     *
+     * @param visible flag
+     */
     public void setShowResultPoints(final boolean visible) {
         this.showResultPoints = visible;
     }
 
+    /**
+     * Set the lresult-points color.
+     *
+     * @param color a ColorInt
+     *
+     * @see #setShowResultPoints(boolean)
+     */
     public void setResultPointColor(@ColorInt final int color) {
         this.resultPointColor = color;
     }

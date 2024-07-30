@@ -29,6 +29,11 @@ import com.hardbacknutter.tinyzxingwrapper.scanner.BarcodeScanner;
 import com.hardbacknutter.tinyzxingwrapper.scanner.DecoderResultListener;
 import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
+/**
+ * A simple (default) capture Activity.
+ * @see ScanContract
+ * @see ScanOptions
+ */
 public class CaptureActivity
         extends AppCompatActivity {
 
