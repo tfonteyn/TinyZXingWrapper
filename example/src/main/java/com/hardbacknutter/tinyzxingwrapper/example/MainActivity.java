@@ -1,13 +1,19 @@
 package com.hardbacknutter.tinyzxingwrapper.example;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.hardbacknutter.tinyzxingwrapper.ScanContract;
 import com.hardbacknutter.tinyzxingwrapper.ScanIntentResult;
@@ -53,10 +59,21 @@ public class MainActivity
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
+        // EdgeToEdge on Android pre-15; but only starting Android 11 up
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            EdgeToEdge.enable(this);
+        }
+
         super.onCreate(savedInstanceState);
 
         vb = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(vb.getRoot(), new RootInsetsListener());
 
         vb.basicScan.setOnClickListener(this::scanBarcode);
         vb.isbnScan.setOnClickListener(this::scanProduct);
@@ -80,4 +97,20 @@ public class MainActivity
         barcodeLauncher.launch(options);
     }
 
+    private static class RootInsetsListener
+            implements OnApplyWindowInsetsListener {
+        @NonNull
+        @Override
+        public WindowInsetsCompat onApplyWindowInsets(@NonNull final View v,
+                                                      @NonNull final WindowInsetsCompat wic) {
+            final Insets insets = wic.getInsets(WindowInsetsCompat.Type.systemBars()
+                                                | WindowInsetsCompat.Type.displayCutout());
+
+            v.setPadding(v.getLeft() + insets.left,
+                         v.getTop() + insets.top,
+                         v.getRight() + insets.right,
+                         v.getBottom());
+            return WindowInsetsCompat.CONSUMED;
+        }
+    }
 }
