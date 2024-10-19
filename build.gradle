@@ -23,7 +23,7 @@ ext {
     // https://github.com/google/desugar_jdk_libs
     desugarVersion = '2.1.2'
 
-    androidxActivityVersion = '1.9.2'
+    androidxActivityVersion = '1.9.3'
     androidxFragmentVersion = '1.8.4'
     androidxLifecycleVersion = '2.8.6'
 
