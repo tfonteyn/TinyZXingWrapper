@@ -1,11 +1,11 @@
 [versions]
-androidGradlePlugin = "8.8.0"
+androidGradlePlugin = "8.8.1"
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.android
 androidKotlinPlugin = "2.1.0"
 
-androidxActivity = '1.9.3'
+androidxActivity = '1.10.0'
 androidxCamerax = '1.4.1'
-androidxFragment = '1.8.5'
+androidxFragment = '1.8.6'
 androidxLifecycle = '2.8.7'
 
 # https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
