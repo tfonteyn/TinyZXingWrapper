@@ -27,10 +27,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(props["sign.storeFile"])
-            storePassword props["sign.storePassword"]
-            keyAlias props["sign.keyAlias"]
-            keyPassword props["sign.keyPassword"]
+            storeFile = file(props["sign.storeFile"])
+            storePassword = props["sign.storePassword"]
+            keyAlias = props["sign.keyAlias"]
+            keyPassword = props["sign.keyPassword"]
         }
     }
 
@@ -42,7 +42,7 @@ android {
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
 
-        signingConfig(signingConfigs.release)
+        signingConfig = signingConfigs.release
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

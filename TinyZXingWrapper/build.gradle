@@ -41,10 +41,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(props["sign.storeFile"])
-            storePassword props["sign.storePassword"]
-            keyAlias props["sign.keyAlias"]
-            keyPassword props["sign.keyPassword"]
+            storeFile = file(props["sign.storeFile"])
+            storePassword = props["sign.storePassword"]
+            keyAlias = props["sign.keyAlias"]
+            keyPassword = props["sign.keyPassword"]
         }
     }
 
@@ -52,7 +52,7 @@ android {
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
 
-        signingConfig(signingConfigs.release)
+        signingConfig = signingConfigs.release
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -115,7 +115,7 @@ dependencies {
 }
 
 tasks.register("javadocGenerate", Javadoc) {
-    description "Generates Javadoc for the TinyZXingWrapper library"
+    description = "Generates Javadoc for the TinyZXingWrapper library"
     source = project.android.sourceSets.main.java.srcDirs
     options {
         setMemberLevel(JavadocMemberLevel.PUBLIC)
@@ -127,7 +127,7 @@ tasks.register("javadocGenerate", Javadoc) {
     classpath += files(android.libraryVariants.collect { final variant ->
         variant.getJavaCompileProvider().get().classpath.files
     })
-    failOnError false
+    failOnError = false
 }
 
 tasks.register('javadocJar', Jar) {
