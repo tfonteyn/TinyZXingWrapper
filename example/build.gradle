@@ -21,6 +21,12 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
     }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.toolChain)
+    }
+}
+
 android {
     namespace = "com.hardbacknutter.tinyzxingwrapper.example"
     compileSdk = rootProject.ext.compileSdkVersion
