@@ -1,10 +1,10 @@
 [versions]
-androidGradlePlugin = "8.9.0"
+androidGradlePlugin = "8.10.0-rc02"
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.android
-androidKotlinPlugin = "2.1.10"
+androidKotlinPlugin = "2.1.20"
 
 androidxActivity = "1.10.1"
-androidxCamerax = '1.4.1'
+androidxCamerax = "1.4.2"
 androidxFragment = '1.8.6'
 androidxLifecycle = '2.8.7'
 
