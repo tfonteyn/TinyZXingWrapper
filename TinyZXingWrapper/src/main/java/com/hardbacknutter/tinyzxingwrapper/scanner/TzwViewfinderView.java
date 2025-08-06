@@ -184,7 +184,7 @@ public class TzwViewfinderView
     }
 
     /**
-     * Set the lresult-points color.
+     * Set the result-points color.
      *
      * @param color a ColorInt
      *
