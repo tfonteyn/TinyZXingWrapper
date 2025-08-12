@@ -114,8 +114,10 @@ public class BarcodeScanner
 
     /**
      * Switch the torch (flashlight) on or off. Takes effect immediately.
+     * <p>
+     * * By default disabled.
      *
-     * @param enable flag
+     * @param enable {@code true} to enable
      */
     public void setTorch(final boolean enable) {
         enableTorch = enable;
@@ -333,7 +335,7 @@ public class BarcodeScanner
     }
 
     /**
-     * The builder prepares all/any arguments related to the actual barcode decoding.
+     * The builder prepares all/any arguments related to the barcode decoding.
      */
     @SuppressWarnings({"unused", "UnusedReturnValue"})
     public static class Builder {

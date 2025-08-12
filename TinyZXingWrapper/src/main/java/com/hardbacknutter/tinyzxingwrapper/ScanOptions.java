@@ -38,13 +38,13 @@ public class ScanOptions {
     /**
      * Enable the torch.
      *
-     * @param enabled {@code true} to enable the torch
+     * @param enable {@code true} to enable the torch
      *
      * @return this
      */
     @NonNull
-    public ScanOptions setTorchEnabled(final boolean enabled) {
-        intent.putExtra(Option.TORCH_ENABLED, enabled);
+    public ScanOptions setTorchEnabled(final boolean enable) {
+        intent.putExtra(Option.TORCH_ENABLED, enable);
         return this;
     }
 
