@@ -77,10 +77,11 @@ public class BarcodeScanner
      * {@link CameraSelector#LENS_FACING_BACK}
      */
     @Nullable
-    private Integer lensFacing;
-    private boolean enableTorch;
+    private final Integer lensFacing;
     @Nullable
-    private DecoderResultPointsListener resultPointsListener;
+    private final DecoderResultPointsListener resultPointsListener;
+
+    private boolean enableTorch;
     @GuardedBy("lock")
     @Nullable
     private ProcessCameraProvider cameraProvider;
@@ -97,19 +98,12 @@ public class BarcodeScanner
 
         scanMode = Objects.requireNonNullElse(builder.scanMode, ScanMode.Single);
 
-        decoderFactory = Objects.requireNonNullElseGet(builder.decoderFactory,
-                                                       () -> new DefaultDecoderFactory(
-                                                               builder.hints));
-    }
+        decoderFactory = Objects.requireNonNullElseGet(
+                builder.decoderFactory,
+                () -> new DefaultDecoderFactory(builder.hints));
 
-    /**
-     * Optionally set the listener to be informed of possible {@link ResultPoint}s found.
-     * Takes effect immediately.
-     *
-     * @param listener a listener; can be {@code null} for none.
-     */
-    public void setResultPointListener(@Nullable final DecoderResultPointsListener listener) {
-        this.resultPointsListener = listener;
+        this.lensFacing = builder.lensFacing;
+        this.resultPointsListener = builder.resultPointsListener;
     }
 
     /**
@@ -125,30 +119,6 @@ public class BarcodeScanner
             if (cameraControl != null) {
                 cameraControl.enableTorch(enableTorch);
             }
-        }
-    }
-
-    /**
-     * Set the preferred camera (lens-facing) to use. Only takes effect if called before
-     * {@link #start(LifecycleOwner, PreviewView, DecoderResultListener)}.
-     * <p>
-     * One of:
-     * <ul>
-     *     <li>{@link CameraSelector#LENS_FACING_FRONT}</li>
-     *     <li>{@link CameraSelector#LENS_FACING_BACK}</li>
-     *     <li>{@code null} : let the device decide (this is the default)</li>
-     * </ul>
-     *
-     * @param lensFacing preferred
-     */
-    public void setCameraLensFacing(@Nullable final Integer lensFacing) {
-        if (lensFacing == null) {
-            this.lensFacing = null;
-        } else if (lensFacing == CameraSelector.LENS_FACING_BACK
-                   || lensFacing == CameraSelector.LENS_FACING_FRONT) {
-            this.lensFacing = lensFacing;
-        } else {
-            this.lensFacing = null;
         }
     }
 
@@ -345,6 +315,10 @@ public class BarcodeScanner
         private DecoderFactory decoderFactory;
         @Nullable
         private ScanMode scanMode;
+        @Nullable
+        private Integer lensFacing;
+        @Nullable
+        private DecoderResultPointsListener resultPointsListener;
 
         /**
          * Set the {@link ScanMode}.
@@ -512,6 +486,45 @@ public class BarcodeScanner
                           }
                       });
             }
+            return this;
+        }
+
+        /**
+         * Set the preferred camera (lens-facing) to use.
+         * <p>
+         * One of:
+         * <ul>
+         *     <li>{@link CameraSelector#LENS_FACING_FRONT}</li>
+         *     <li>{@link CameraSelector#LENS_FACING_BACK}</li>
+         *     <li>{@code null} : let the device decide (this is the default)</li>
+         * </ul>
+         *
+         * @param lensFacing preferred
+         */
+        @NonNull
+        public Builder setCameraLensFacing(@Nullable final Integer lensFacing) {
+            if (lensFacing == null) {
+                this.lensFacing = null;
+            } else if (lensFacing == CameraSelector.LENS_FACING_BACK
+                       || lensFacing == CameraSelector.LENS_FACING_FRONT) {
+                this.lensFacing = lensFacing;
+            } else {
+                this.lensFacing = null;
+            }
+            return this;
+        }
+
+        /**
+         * Set a listener to be informed of possible {@link ResultPoint}s found.
+         *
+         * @param listener a listener; can be {@code null} for none.
+         *
+         * @return this
+         */
+        @NonNull
+        public Builder setResultPointsListener(@Nullable final
+                                               DecoderResultPointsListener listener) {
+            this.resultPointsListener = listener;
             return this;
         }
 
