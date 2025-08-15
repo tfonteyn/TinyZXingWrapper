@@ -147,5 +147,5 @@ tasks.register('javadocJar', Jar) {
     into("docs")
     // Where to store the jar file
     destinationDirectory = project.layout.buildDirectory.dir("outputs/docs")
-    archiveFileName = "${project.name}-docs-${tinyZXingWrapperVersion}.jar"
+    archiveFileName = "${project.name}-javadocs-${tinyZXingWrapperVersion}.jar"
 }
