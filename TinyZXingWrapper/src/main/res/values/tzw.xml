@@ -3,9 +3,6 @@
     <!-- REQUIRED - the "androidx.camera.view.PreviewView" view -->
     <item name="tzw_preview" type="id" />
 
-    <!-- Optional - CaptureActivity container. -->
-    <item name="tzw_container" type="id" />
-
     <!-- Optional - a button to switch the torch on/off -->
     <item name="tzw_btn_torch" type="id" />
 
