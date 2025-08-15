@@ -37,12 +37,7 @@ kotlin {
 }
 
 ext {
-    // build version for the library
-    // 1.1.1: WIP
-    // 1.1.0: bugfix
-    // 1.0.1: translations added, no lib code changes
-    // 1.0.0: initial release
-    tinyZXingWrapperVersion = "1.1.1"
+    tinyZXingWrapperVersion = "1.2.0"
 }
 
 android {
