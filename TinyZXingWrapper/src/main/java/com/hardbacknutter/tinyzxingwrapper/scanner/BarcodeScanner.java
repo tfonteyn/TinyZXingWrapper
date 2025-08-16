@@ -150,114 +150,10 @@ public class BarcodeScanner
                         final Preview preview = new Preview.Builder().build();
                         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-
                         final ImageCapture imageCapture = new ImageCapture.Builder().build();
 
-                        final ImageAnalysis.Analyzer analyzer = new ImageAnalysis.Analyzer() {
-
-                            /** Prevent duplicate scans in {@link ScanMode#Continuous}. */
-                            @Nullable
-                            private String lastBarcodeText;
-
-                            @Override
-                            public void analyze(@NonNull final ImageProxy image) {
-                                try (image) {
-                                    final LuminanceSource luminanceSource = process(image);
-                                    final Result result = decoder.decode(luminanceSource);
-                                    if (result != null) {
-                                        forwardResult(result);
-                                        if (scanMode == ScanMode.Single) {
-                                            // all done
-                                            return;
-                                        }
-                                    }
-
-                                    if (resultPointsListener != null) {
-                                        final List<ResultPoint> possibleResultPoints =
-                                                decoder.getPossibleResultPoints();
-                                        if (!possibleResultPoints.isEmpty()) {
-                                            updatePoints(image, possibleResultPoints);
-                                        }
-                                    }
-
-                                } catch (@NonNull final Throwable e) {
-                                    // catching Throwable, as we see StackOverflowError
-                                    // on some devices.
-                                    mainExecutor.execute(() -> {
-                                        resultListener.onError(e);
-                                        BarcodeScanner.this.stop();
-                                    });
-                                }
-                            }
-
-                            @NonNull
-                            private SimpleLuminanceSource process(@NonNull final ImageProxy image) {
-                                // The image provided has format ImageFormat.YUV_420_888.
-                                // so we only take the Y data from plane 0
-                                final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
-
-                                final ByteBuffer yByteBuffer = yPlane.getBuffer();
-                                yByteBuffer.rewind();
-                                final byte[] yData = new byte[yByteBuffer.remaining()];
-                                yByteBuffer.get(yData);
-
-                                return new SimpleLuminanceSource(yData,
-                                                                 image.getWidth(),
-                                                                 image.getHeight(),
-                                                                 yPlane.getRowStride(),
-                                                                 yPlane.getPixelStride())
-                                        .flipHorizontal(isImageFlipped)
-                                        .rotate(image.getImageInfo()
-                                                     .getRotationDegrees());
-                            }
-
-                            private void forwardResult(@NonNull final Result result) {
-                                mainExecutor.execute(() -> {
-                                    if (scanMode == ScanMode.Single) {
-                                        resultListener.onResult(result);
-                                        BarcodeScanner.this.stop();
-                                    } else {
-                                        // don't check on null/blank
-                                        if (!Objects.equals(lastBarcodeText, result.getText())) {
-                                            lastBarcodeText = result.getText();
-                                            resultListener.onResult(result);
-                                        }
-                                    }
-                                });
-                            }
-
-                            /**
-                             * When using the {@link DefaultDecoderFactory}, the zxing
-                             * "MultiFormatReader" will send the possible result-points
-                             * to the decoder during the above decoder.decode() call.
-                             * When the decode() call is done (successful or failure),
-                             * we take that collection of ResultPoint's and, after potentially
-                             * mirroring the points, forward them to the user-settable listener.
-                             *
-                             * @param image incoming image
-                             * @param points the possible points found
-                             */
-                            private void updatePoints(@NonNull final ImageProxy image,
-                                                      @NonNull final List<ResultPoint> points) {
-
-                                mainExecutor.execute(() -> {
-                                    //noinspection DataFlowIssue
-                                    resultPointsListener.setImageSize(image.getWidth(),
-                                                                      image.getHeight());
-                                    points.forEach(point -> {
-                                        if (isImageFlipped) {
-                                            final float x = image.getWidth() - point.getX();
-                                            final float y = point.getY();
-                                            resultPointsListener.foundPossibleResultPoint(
-                                                    new ResultPoint(x, y));
-                                        } else {
-                                            resultPointsListener.foundPossibleResultPoint(
-                                                    point);
-                                        }
-                                    });
-                                });
-                            }
-                        };
+                        final ImageAnalysis.Analyzer analyzer =
+                                new MyAnalyzer(decoder, isImageFlipped, resultListener);
 
                         final ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder().build();
                         imageAnalyzer.setAnalyzer(cameraExecutor, analyzer);
@@ -538,6 +434,124 @@ public class BarcodeScanner
         @NonNull
         public BarcodeScanner build(@NonNull final Context context) {
             return new BarcodeScanner(context, this);
+        }
+    }
+
+    private class MyAnalyzer
+            implements ImageAnalysis.Analyzer {
+
+        @NonNull
+        private final Decoder decoder;
+        @NonNull
+        private final DecoderResultListener resultListener;
+
+        private final boolean isImageFlipped;
+
+        /** Prevent duplicate scans in {@link ScanMode#Continuous}. */
+        @Nullable
+        private String lastBarcodeText;
+
+        private MyAnalyzer(@NonNull final Decoder decoder,
+                           final boolean isImageFlipped,
+                           @NonNull final DecoderResultListener resultListener) {
+            this.decoder = decoder;
+            this.resultListener = resultListener;
+            this.isImageFlipped = isImageFlipped;
+        }
+
+        @Override
+        public void analyze(@NonNull final ImageProxy image) {
+            try (image) {
+                final LuminanceSource luminanceSource = process(image);
+                final Result result = decoder.decode(luminanceSource);
+                if (result != null) {
+                    forwardResult(result);
+                    if (scanMode == ScanMode.Single) {
+                        // all done
+                        return;
+                    }
+                }
+
+                if (resultPointsListener != null) {
+                    final List<ResultPoint> possibleResultPoints =
+                            decoder.getPossibleResultPoints();
+                    if (!possibleResultPoints.isEmpty()) {
+                        updatePoints(image, possibleResultPoints);
+                    }
+                }
+
+            } catch (@NonNull final Throwable e) {
+                // catching Throwable, as we see StackOverflowError
+                // on some devices.
+                mainExecutor.execute(() -> {
+                    resultListener.onError(e);
+                    BarcodeScanner.this.stop();
+                });
+            }
+        }
+
+        @NonNull
+        private SimpleLuminanceSource process(@NonNull final ImageProxy image) {
+            // The image provided has format ImageFormat.YUV_420_888.
+            // so we only take the Y data from plane 0
+            final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+
+            final ByteBuffer yByteBuffer = yPlane.getBuffer();
+            yByteBuffer.rewind();
+            final byte[] yData = new byte[yByteBuffer.remaining()];
+            yByteBuffer.get(yData);
+
+            return new SimpleLuminanceSource(yData,
+                                             image.getWidth(),
+                                             image.getHeight(),
+                                             yPlane.getRowStride(),
+                                             yPlane.getPixelStride())
+                    .flipHorizontal(isImageFlipped)
+                    .rotate(image.getImageInfo().getRotationDegrees());
+        }
+
+        private void forwardResult(@NonNull final Result result) {
+            mainExecutor.execute(() -> {
+                if (scanMode == ScanMode.Single) {
+                    resultListener.onResult(result);
+                    BarcodeScanner.this.stop();
+                } else {
+                    // don't check on null/blank
+                    if (!Objects.equals(lastBarcodeText, result.getText())) {
+                        lastBarcodeText = result.getText();
+                        resultListener.onResult(result);
+                    }
+                }
+            });
+        }
+
+        /**
+         * When using the {@link DefaultDecoderFactory}, the zxing
+         * "MultiFormatReader" will send the possible result-points
+         * to the decoder during the above decoder.decode() call.
+         * When the decode() call is done (successful or failure),
+         * we take that collection of ResultPoint's and, after potentially
+         * mirroring the points, forward them to the user-settable listener.
+         *
+         * @param image  incoming image
+         * @param points the possible points found
+         */
+        private void updatePoints(@NonNull final ImageProxy image,
+                                  @NonNull final List<ResultPoint> points) {
+
+            mainExecutor.execute(() -> {
+                //noinspection DataFlowIssue
+                resultPointsListener.setImageSize(image.getWidth(), image.getHeight());
+                points.forEach(point -> {
+                    if (isImageFlipped) {
+                        final float x = image.getWidth() - point.getX();
+                        final float y = point.getY();
+                        resultPointsListener.foundPossibleResultPoint(new ResultPoint(x, y));
+                    } else {
+                        resultPointsListener.foundPossibleResultPoint(point);
+                    }
+                });
+            });
         }
     }
 }
