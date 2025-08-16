@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
+import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
@@ -156,7 +157,9 @@ public class BarcodeScanner
                         final ImageAnalysis.Analyzer analyzer =
                                 new MyAnalyzer(decoder, isImageFlipped, resultListener);
 
-                        final ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder().build();
+                        final ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
+                                .setOutputImageRotationEnabled(true)
+                                .build();
                         imageAnalyzer.setAnalyzer(cameraExecutor, analyzer);
 
                         synchronized (lock) {
@@ -479,7 +482,7 @@ public class BarcodeScanner
         }
 
         @NonNull
-        private SimpleLuminanceSource process(@NonNull final ImageProxy image) {
+        private LuminanceSource process(@NonNull final ImageProxy image) {
             // The image provided has format ImageFormat.YUV_420_888.
             // so we only take the Y data from plane 0
             final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
@@ -489,13 +492,12 @@ public class BarcodeScanner
             final byte[] yData = new byte[yByteBuffer.remaining()];
             yByteBuffer.get(yData);
 
-            return new SimpleLuminanceSource(yData,
-                                             image.getWidth(),
-                                             image.getHeight(),
-                                             yPlane.getRowStride(),
-                                             yPlane.getPixelStride())
-                    .flipHorizontal(isImageFlipped)
-                    .rotate(image.getImageInfo().getRotationDegrees());
+            return new PlanarYUVLuminanceSource(
+                    yData,
+                    yPlane.getRowStride(), image.getHeight(),
+                    // no need to crop, our preview is already sized down.
+                    0, 0, image.getWidth(), image.getHeight(),
+                    isImageFlipped);
         }
 
         private void forwardResult(@NonNull final Result result) {
