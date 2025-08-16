@@ -31,6 +31,19 @@
         android:paddingBottom="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <TextView
+            android:id="@+id/last_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            android:padding="16dp"
+            android:textIsSelectable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="1234567890123" />
+
         <Button
             android:id="@+id/btn_scan_generic"
             android:layout_width="wrap_content"
@@ -38,7 +51,7 @@
             android:layout_marginTop="16dp"
             android:text="@string/btn_scan_generic"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/last_scan" />
 
         <Button
             android:id="@+id/btn_scan_generic_using_front_camera"
@@ -71,25 +84,10 @@
             android:id="@+id/btn_scan_data_matrix"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="8dp"
             android:text="@string/btn_scan_dm"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_scan_qr_code" />
-
-        <TextView
-            android:id="@+id/last_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:background="@color/white"
-            android:padding="8dp"
-            android:textIsSelectable="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_scan_data_matrix"
-            tools:text="1234567890123" />
+            app:layout_constraintStart_toEndOf="@id/btn_scan_qr_code"
+            app:layout_constraintTop_toTopOf="@id/btn_scan_qr_code" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
