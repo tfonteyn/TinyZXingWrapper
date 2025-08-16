@@ -17,7 +17,6 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             style="@style/Toolbar.Activity"
-            app:subtitle="@string/msg_intro"
             app:title="@string/app_name"
             />
     </com.google.android.material.appbar.AppBarLayout>
@@ -32,26 +31,46 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <TextView
-            android:id="@+id/last_scan"
+            android:id="@+id/options"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@color/white"
-            android:padding="16dp"
-            android:textIsSelectable="true"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@string/lbl_options"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="1234567890123" />
+            />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/auto_focus"
+            android:layout_width="@dimen/switch_width"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:checked="false"
+            android:text="@string/lbl_auto_focus"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/options"
+            />
+
+        <TextView
+            android:id="@+id/info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/msg_intro"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/auto_focus"
+            />
 
         <Button
             android:id="@+id/btn_scan_generic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:text="@string/btn_scan_generic"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/last_scan" />
+            app:layout_constraintTop_toBottomOf="@id/info" />
 
         <Button
             android:id="@+id/btn_scan_generic_using_front_camera"
@@ -66,28 +85,41 @@
             android:id="@+id/btn_scan_product"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_scan_product"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@id/btn_scan_generic"
             app:layout_constraintTop_toBottomOf="@id/btn_scan_generic" />
 
         <Button
             android:id="@+id/btn_scan_qr_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_scan_qr"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@id/btn_scan_product"
             app:layout_constraintTop_toBottomOf="@id/btn_scan_product" />
 
         <Button
             android:id="@+id/btn_scan_data_matrix"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_scan_dm"
-            app:layout_constraintStart_toEndOf="@id/btn_scan_qr_code"
-            app:layout_constraintTop_toTopOf="@id/btn_scan_qr_code" />
+            app:layout_constraintStart_toStartOf="@id/btn_scan_qr_code"
+            app:layout_constraintTop_toBottomOf="@id/btn_scan_qr_code" />
+
+        <TextView
+            android:id="@+id/last_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/white"
+            android:padding="16dp"
+            android:textIsSelectable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_scan_data_matrix"
+            tools:text="1234567890123" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

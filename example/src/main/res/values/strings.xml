@@ -20,5 +20,7 @@
     <string name="msg_barcode">Barcode: %1$s\nFormat: %2$s</string>
     <string name="msg_intro">Click a button to start a scan</string>
     <string name="btn_scan_dm">Data Matrix</string>
+    <string name="lbl_auto_focus">Auto Focus</string>
+    <string name="lbl_options">Options</string>
 
 </resources>

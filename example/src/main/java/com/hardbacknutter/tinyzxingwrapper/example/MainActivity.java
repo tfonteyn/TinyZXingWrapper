@@ -25,6 +25,7 @@ public class MainActivity
         extends AppCompatActivity {
 
     private ActivityMainBinding vb;
+    private boolean autoFocus;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher =
             registerForActivityResult(new ScanContract(), result -> {
@@ -78,6 +79,13 @@ public class MainActivity
             getWindow().setNavigationBarContrastEnforced(false);
         }
 
+        if (savedInstanceState != null) {
+            autoFocus = savedInstanceState.getBoolean(ScanOptions.Option.AUTO_FOCUS, false);
+            vb.autoFocus.setChecked(autoFocus);
+        }
+
+        vb.autoFocus.setOnCheckedChangeListener((v, isChecked) ->
+                                                        this.autoFocus = isChecked);
         vb.btnScanGeneric.setOnClickListener(this::scanGeneric);
         vb.btnScanGenericUsingFrontCamera.setOnClickListener(this::scanGenericFrontCamera);
         vb.btnScanProduct.setOnClickListener(this::scanProduct);
@@ -86,11 +94,14 @@ public class MainActivity
     }
 
     private void scanGeneric(@NonNull final View view) {
-        barcodeLauncher.launch(new ScanOptions());
+        final ScanOptions options = new ScanOptions()
+                .setAutoFocus(autoFocus);
+        barcodeLauncher.launch(options);
     }
 
     private void scanGenericFrontCamera(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
+                .setAutoFocus(autoFocus)
                 .setPrompt(getString(R.string.msg_scan_prompt))
                 .setUseCameraWithLensFacing(CameraSelector.LENS_FACING_FRONT);
         barcodeLauncher.launch(options);
@@ -98,19 +109,28 @@ public class MainActivity
 
     private void scanProduct(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
+                .setAutoFocus(autoFocus)
                 .setBarcodeFormats(BarcodeFamily.PRODUCT);
         barcodeLauncher.launch(options);
     }
 
     private void scanQr(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
+                .setAutoFocus(autoFocus)
                 .setBarcodeFormats(List.of(BarcodeFormat.QR_CODE));
         barcodeLauncher.launch(options);
     }
 
     private void scanDataMatrix(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
+                .setAutoFocus(autoFocus)
                 .setBarcodeFormats(List.of(BarcodeFormat.DATA_MATRIX));
         barcodeLauncher.launch(options);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(ScanOptions.Option.AUTO_FOCUS, autoFocus);
     }
 }
