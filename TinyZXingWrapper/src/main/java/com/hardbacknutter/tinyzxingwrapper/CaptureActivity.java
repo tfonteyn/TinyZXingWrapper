@@ -4,20 +4,28 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.view.PreviewView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.zxing.Result;
@@ -31,6 +39,7 @@ import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 
 /**
  * A simple (default) capture Activity.
+ *
  * @see ScanContract
  * @see ScanOptions
  */
@@ -96,14 +105,21 @@ public class CaptureActivity
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
+        // EdgeToEdge on Android pre-15; but only starting Android 11 up
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            EdgeToEdge.enable(this);
+        }
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.tzw_activity_scan);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            initInsets();
+        }
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         final PreviewView view = findViewById(R.id.tzw_preview);
         previewView = Objects.requireNonNull(view, "Missing R.id.tzw_preview");
-
 
         // Note that the ScanMode is kept as default (Single)
         // and that we always use the default DecoderFactory
@@ -115,8 +131,11 @@ public class CaptureActivity
 
             builder.addHints(args);
         }
-        scanner = builder.build(this);
 
+        viewFinderView = findViewById(R.id.tzw_viewfinder_view);
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
+            builder.setResultPointsListener(viewFinderView);
+        }
 
         args = savedInstanceState != null ? savedInstanceState : args;
         if (args != null) {
@@ -132,13 +151,11 @@ public class CaptureActivity
             hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
         }
 
-        scanner.setTorch(torchEnabled);
-        scanner.setCameraLensFacing(lensFacing);
+        builder.setCameraLensFacing(lensFacing);
 
-        viewFinderView = findViewById(R.id.tzw_viewfinder_view);
-        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            scanner.setResultPointListener(viewFinderView);
-        }
+        scanner = builder.build(this);
+        scanner.setTorch(torchEnabled);
+
 
         getLifecycle().addObserver(scanner);
 
@@ -152,6 +169,23 @@ public class CaptureActivity
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private void initInsets() {
+        getWindow().setNavigationBarContrastEnforced(false);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        final ConstraintLayout rootLayout = findViewById(R.id.capture_root);
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (view, windowInsets) -> {
+            final Insets insets = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout());
+
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private void startScanner() {
@@ -182,23 +216,28 @@ public class CaptureActivity
 
             torchButton.setVisibility(hasFlash ? View.VISIBLE : View.GONE);
             if (hasFlash) {
-                // We're not using checkable and StateLists as managing the background
-                // color then makes things needlessly complicated.
-                // Hence simply swap the icon manually here.
-                torchButton.setIconResource(torchEnabled
-                                            ? R.drawable.tzw_ic_baseline_flashlight_off_24
-                                            : R.drawable.tzw_ic_baseline_flashlight_on_24);
+                // set the initial state which depends on incoming args
+                setTorchIcon();
                 torchButton.setOnClickListener(v -> {
+                    // flip the state
                     torchEnabled = !torchEnabled;
-                    torchButton.setIconResource(torchEnabled
-                                                ? R.drawable.tzw_ic_baseline_flashlight_off_24
-                                                : R.drawable.tzw_ic_baseline_flashlight_on_24);
+                    setTorchIcon();
                     if (scanner != null) {
                         scanner.setTorch(torchEnabled);
                     }
                 });
             }
         }
+    }
+
+    private void setTorchIcon() {
+        // We're not using checkable and StateLists as managing the background
+        // color then makes things needlessly complicated.
+        // Hence simply swap the icon manually here.
+        //noinspection DataFlowIssue
+        torchButton.setIconResource(torchEnabled
+                                    ? R.drawable.tzw_ic_baseline_flashlight_off_24
+                                    : R.drawable.tzw_ic_baseline_flashlight_on_24);
     }
 
     /**
