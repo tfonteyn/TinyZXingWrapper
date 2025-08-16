@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<FrameLayout
+<!--
+    There are severe problems with the layout of the PreviewView
+    when not going fullscreen as we used to (version 1.1.0).
+
+    I've not found an exact bug-report, but it boils down to the
+    PreviewView using a SurfaceView which "pokes a hole" in the layout
+    to stream the video signal in.
+    Doing so can and will ignore certain (which? dunno) layout measurements
+    and some (which? dunno) constraints will fail and/or be ignored.
+
+    Solution: add this to the androidx.camera.view.PreviewView:
+
+        app:implementationMode="compatible"
+
+    It seems to be the only 100% reliable solution.
+
+    The only alternative is showing the PreviewView fullscreen,
+    which leads to slower barcode decoding.
+
+    https://developer.android.com/reference/androidx/camera/view/PreviewView.ImplementationMode
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,48 +29,62 @@
     android:layout_height="match_parent"
     tools:context="com.hardbacknutter.tinyzxingwrapper.CaptureActivity">
 
-    <androidx.camera.view.PreviewView
-        android:id="@id/tzw_preview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:keepScreenOn="true" />
+    <FrameLayout
+        android:id="@+id/tzw_frame_preview"
+        android:layout_width="@dimen/tzw_preview_width"
+        android:layout_height="@dimen/tzw_preview_height"
+        android:layout_marginTop="@dimen/tzw_preview_margin_top"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- custom attributes (with their defaults) which can be overridden:
+        <androidx.camera.view.PreviewView
+            android:id="@id/tzw_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:keepScreenOn="true"
+            app:implementationMode="compatible" />
+
+        <!-- custom attributes (with their defaults) which can be overridden:
         app:tzw_enable_laser="true"
         app:tzw_laser_color="?attr/tzw_laser_color"
         app:tzw_enable_result_points="true"
         app:tzw_result_points_color="?attr/tzw_result_points_color"
 
-        If both laser and resul-points are disable, this view displays nothing.
+        If both laser and result-points are disable, this view displays nothing.
 
         To work as designed, it MUST overlap the PreviewView exactly.
-    -->
-    <com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView
-        android:id="@id/tzw_viewfinder_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        -->
+        <com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView
+            android:id="@id/tzw_viewfinder_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <!-- icon: see java code -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@id/tzw_btn_torch"
-        style="@style/Widget.Material3.Button.IconButton.Filled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="8dp"
-        android:visibility="gone"
-        app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
-        tools:visibility="visible"
-        />
+        <!-- icon: see java code -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@id/tzw_btn_torch"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/tzw_preview_torch_margin"
+            android:visibility="gone"
+            app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
+            tools:visibility="visible"
+            />
+    </FrameLayout>
 
     <TextView
         android:id="@id/tzw_status_view"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
         android:layout_margin="8dp"
         android:background="?attr/tzw_status_text_background"
+        android:maxLines="4"
         android:textColor="?attr/tzw_status_text_color"
+        app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
+        app:layout_constraintStart_toStartOf="@id/tzw_frame_preview"
+        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview"
         tools:ignore="SelectableText"
         tools:text="@string/tzw_status_text" />
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

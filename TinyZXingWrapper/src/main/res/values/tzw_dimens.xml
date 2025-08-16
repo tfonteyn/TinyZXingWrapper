@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 16:9:... gives 320/180 but we like the torch button to
+         overlay the view to add to the vertical: 24 for the icon,
+         ignore the icon margins... -->
+    <dimen name="tzw_preview_width">320dp</dimen>
+    <dimen name="tzw_preview_height">204dp</dimen>
+
+    <dimen name="tzw_preview_margin_top">16dp</dimen>
+
+    <!-- margin around the torch button. -->
+    <dimen name="tzw_preview_torch_margin">4dp</dimen>
+</resources>
