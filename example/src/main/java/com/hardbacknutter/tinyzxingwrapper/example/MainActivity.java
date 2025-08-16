@@ -1,5 +1,6 @@
 package com.hardbacknutter.tinyzxingwrapper.example;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -53,6 +54,18 @@ public class MainActivity
                                 break;
                         }
                     } else {
+                        final Intent intent = result.getIntent();
+                        if (intent != null) {
+                            final Bundle extras = intent.getExtras();
+                            if (extras != null) {
+                                final Object e = extras.get(
+                                        ScanIntentResult.Failure.FAILURE_EXCEPTION);
+                                if (e instanceof Throwable) {
+                                    vb.lastScan.setText(((Throwable) e).getMessage());
+                                    return;
+                                }
+                            }
+                        }
                         vb.lastScan.setText(R.string.err_cancelled);
                     }
                 }
