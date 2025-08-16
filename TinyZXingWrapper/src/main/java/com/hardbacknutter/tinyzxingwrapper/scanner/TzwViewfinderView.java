@@ -28,9 +28,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
 
 import com.hardbacknutter.tinyzxingwrapper.R;
 
@@ -44,7 +46,7 @@ import com.hardbacknutter.tinyzxingwrapper.R;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class TzwViewfinderView
         extends View
-        implements DecoderResultPointsListener {
+        implements ResultPointCallback {
 
     private static final int[] LASER_COLOR_ALPHA = {0, 64, 128, 192, 255, 192, 128, 64};
     private static final long ANIMATION_DELAY_MS = 80L;
@@ -59,8 +61,8 @@ public class TzwViewfinderView
     @NonNull
     private final Paint paint;
 
-    private final List<ResultPoint> resultPoints = new ArrayList<>(MAX_POINTS);
-    private final List<ResultPoint> previousResultPoints = new ArrayList<>(MAX_POINTS);
+    private final Deque<ResultPoint> resultPoints = new ArrayDeque<>();
+    private final Deque<ResultPoint> previousResultPoints = new ArrayDeque<>();
 
     /**
      * Current index into {@link #LASER_COLOR_ALPHA}.
@@ -223,6 +225,7 @@ public class TzwViewfinderView
             if (!previousResultPoints.isEmpty()) {
                 drawResultPoints(canvas, previousResultPoints, scaleX, scaleY,
                                  PREVIOUS_POINT_SIZE, PREVIOUS_POINT_OPACITY);
+                previousResultPoints.clear();
             }
 
             synchronized (resultPoints) {
@@ -241,7 +244,7 @@ public class TzwViewfinderView
     }
 
     private void drawResultPoints(@NonNull final Canvas canvas,
-                                  @NonNull final List<ResultPoint> points,
+                                  @NonNull final Collection<ResultPoint> points,
                                   final float scaleX,
                                   final float scaleY,
                                   final float radius,
@@ -255,7 +258,6 @@ public class TzwViewfinderView
         points.clear();
     }
 
-    @Override
     public void setImageSize(final int width,
                              final int height) {
         imageWidth = width;
@@ -265,10 +267,10 @@ public class TzwViewfinderView
     @Override
     public void foundPossibleResultPoint(@NonNull final ResultPoint point) {
         synchronized (resultPoints) {
-            if (resultPoints.size() < MAX_POINTS) {
-                resultPoints.add(point);
+            resultPoints.add(point);
+            if (resultPoints.size() > MAX_POINTS) {
+                resultPoints.removeFirst();
             }
         }
     }
-
 }

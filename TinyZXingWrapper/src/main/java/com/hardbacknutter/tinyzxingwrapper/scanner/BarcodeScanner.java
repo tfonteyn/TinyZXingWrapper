@@ -26,6 +26,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public class BarcodeScanner
     @Nullable
     private final Integer lensFacing;
     @Nullable
-    private final DecoderResultPointsListener resultPointsListener;
+    private final ResultPointCallback resultPointCallback;
 
     private boolean enableTorch;
     @GuardedBy("lock")
@@ -103,7 +104,7 @@ public class BarcodeScanner
                 () -> new DefaultDecoderFactory(builder.hints));
 
         this.lensFacing = builder.lensFacing;
-        this.resultPointsListener = builder.resultPointsListener;
+        this.resultPointCallback = builder.resultPointCallback;
     }
 
     /**
@@ -145,7 +146,7 @@ public class BarcodeScanner
                         }
                         final CameraSelector cameraSelector = csb.build();
 
-                        final Decoder decoder = decoderFactory.createDecoder();
+                        final Decoder decoder = decoderFactory.createDecoder(resultPointCallback);
 
                         final Preview preview = new Preview.Builder().build();
                         preview.setSurfaceProvider(previewView.getSurfaceProvider());
@@ -214,7 +215,7 @@ public class BarcodeScanner
         @Nullable
         private Integer lensFacing;
         @Nullable
-        private DecoderResultPointsListener resultPointsListener;
+        private ResultPointCallback resultPointCallback;
 
         /**
          * Set the {@link ScanMode}.
@@ -418,9 +419,8 @@ public class BarcodeScanner
          * @return this
          */
         @NonNull
-        public Builder setResultPointsListener(@Nullable final
-                                               DecoderResultPointsListener listener) {
-            this.resultPointsListener = listener;
+        public Builder setResultPointCallback(@Nullable final ResultPointCallback listener) {
+            this.resultPointCallback = listener;
             return this;
         }
 
@@ -461,25 +461,13 @@ public class BarcodeScanner
 
         @Override
         public void analyze(@NonNull final ImageProxy image) {
+            // Must close the image after processing.
             try (image) {
                 final LuminanceSource luminanceSource = process(image);
                 final Result result = decoder.decode(luminanceSource);
                 if (result != null) {
                     forwardResult(result);
-                    if (scanMode == ScanMode.Single) {
-                        // all done
-                        return;
-                    }
                 }
-
-                if (resultPointsListener != null) {
-                    final List<ResultPoint> possibleResultPoints =
-                            decoder.getPossibleResultPoints();
-                    if (!possibleResultPoints.isEmpty()) {
-                        updatePoints(image, possibleResultPoints);
-                    }
-                }
-
             } catch (@NonNull final Throwable e) {
                 // catching Throwable, as we see StackOverflowError
                 // on some devices.
@@ -522,35 +510,6 @@ public class BarcodeScanner
                         resultListener.onResult(result);
                     }
                 }
-            });
-        }
-
-        /**
-         * When using the {@link DefaultDecoderFactory}, the zxing
-         * "MultiFormatReader" will send the possible result-points
-         * to the decoder during the above decoder.decode() call.
-         * When the decode() call is done (successful or failure),
-         * we take that collection of ResultPoint's and, after potentially
-         * mirroring the points, forward them to the user-settable listener.
-         *
-         * @param image  incoming image
-         * @param points the possible points found
-         */
-        private void updatePoints(@NonNull final ImageProxy image,
-                                  @NonNull final List<ResultPoint> points) {
-
-            mainExecutor.execute(() -> {
-                //noinspection DataFlowIssue
-                resultPointsListener.setImageSize(image.getWidth(), image.getHeight());
-                points.forEach(point -> {
-                    if (isImageFlipped) {
-                        final float x = image.getWidth() - point.getX();
-                        final float y = point.getY();
-                        resultPointsListener.foundPossibleResultPoint(new ResultPoint(x, y));
-                    } else {
-                        resultPointsListener.foundPossibleResultPoint(point);
-                    }
-                });
             });
         }
     }

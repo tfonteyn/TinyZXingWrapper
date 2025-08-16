@@ -1,6 +1,9 @@
 package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.zxing.ResultPointCallback;
 
 /**
  * Factory to create Decoder instances.
@@ -16,5 +19,5 @@ public interface DecoderFactory {
      * @return new Decode instance
      */
     @NonNull
-    Decoder createDecoder();
+    Decoder createDecoder(@Nullable ResultPointCallback resultPointCallback);
 }

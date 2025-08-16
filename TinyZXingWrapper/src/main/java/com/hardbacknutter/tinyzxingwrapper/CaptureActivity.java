@@ -134,7 +134,7 @@ public class CaptureActivity
 
         viewFinderView = findViewById(R.id.tzw_viewfinder_view);
         if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            builder.setResultPointsListener(viewFinderView);
+            builder.setResultPointCallback(viewFinderView);
         }
 
         args = savedInstanceState != null ? savedInstanceState : args;

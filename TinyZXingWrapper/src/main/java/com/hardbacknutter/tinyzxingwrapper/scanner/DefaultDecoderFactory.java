@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
+import com.google.zxing.ResultPointCallback;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,13 +28,13 @@ public class DefaultDecoderFactory
 
     @Override
     @NonNull
-    public Decoder createDecoder() {
+    public Decoder createDecoder(@Nullable final ResultPointCallback resultPointCallback) {
         final MultiFormatReader reader = new MultiFormatReader();
         final Decoder decoder = new DefaultDecoder(reader);
 
-        // Use the decoder itself as the callback
-        hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, decoder);
-
+        if (resultPointCallback != null) {
+            hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, resultPointCallback);
+        }
         reader.setHints(hints);
 
         return decoder;

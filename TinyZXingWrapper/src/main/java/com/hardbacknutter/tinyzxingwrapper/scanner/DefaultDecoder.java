@@ -23,7 +23,6 @@ public class DefaultDecoder
 
     @NonNull
     protected final Reader reader;
-    protected final List<ResultPoint> points = new ArrayList<>();
 
     /**
      * Create a new Decoder with the specified Reader.
@@ -61,7 +60,6 @@ public class DefaultDecoder
      */
     @Nullable
     protected Result decode(@NonNull final BinaryBitmap bitmap) {
-        points.clear();
         try {
             if (reader instanceof MultiFormatReader) {
                 // Optimization - MultiFormatReader's normal decode() method is slow.
@@ -76,16 +74,4 @@ public class DefaultDecoder
             reader.reset();
         }
     }
-
-    @Override
-    @NonNull
-    public List<ResultPoint> getPossibleResultPoints() {
-        return new ArrayList<>(points);
-    }
-
-    @Override
-    public void foundPossibleResultPoint(@NonNull final ResultPoint point) {
-        points.add(point);
-    }
-
 }
