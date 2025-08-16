@@ -9,9 +9,12 @@ import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.FocusMeteringAction;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.core.MeteringPoint;
 import androidx.camera.core.Preview;
+import androidx.camera.core.SurfaceOrientedMeteringPointFactory;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -39,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.hardbacknutter.tinyzxingwrapper.ScanContract;
@@ -89,6 +93,7 @@ public class BarcodeScanner
     @GuardedBy("lock")
     @Nullable
     private CameraControl cameraControl;
+    private boolean autoFocus;
 
     private BarcodeScanner(@NonNull final Context context,
                            @NonNull final Builder builder) {
@@ -103,6 +108,7 @@ public class BarcodeScanner
                 builder.decoderFactory,
                 () -> new DefaultDecoderFactory(builder.hints));
 
+        this.autoFocus = builder.autoFocus;
         this.lensFacing = builder.lensFacing;
         this.resultPointCallback = builder.resultPointCallback;
     }
@@ -170,12 +176,33 @@ public class BarcodeScanner
 
                             cameraControl = camera.getCameraControl();
                             cameraControl.enableTorch(enableTorch);
+
+                            if (autoFocus) {
+                                configureAutoFocus(previewView);
+                            }
                         }
                     } catch (@NonNull final ExecutionException | InterruptedException e) {
                         mainExecutor.execute(() -> resultListener.onError(e));
                     }
                 },
                 mainExecutor);
+    }
+
+    private void configureAutoFocus(@NonNull final PreviewView previewView) {
+
+        final float previewViewWidth = previewView.getWidth();
+        final float previewViewHeight = previewView.getHeight();
+
+        final MeteringPoint autoFocusPoint = new SurfaceOrientedMeteringPointFactory(
+                previewViewWidth, previewViewHeight)
+                .createPoint(previewViewWidth / 2.0f, previewViewHeight / 2.0f);
+
+        //noinspection DataFlowIssue
+        cameraControl.startFocusAndMetering(
+                new FocusMeteringAction
+                        .Builder(autoFocusPoint, FocusMeteringAction.FLAG_AF)
+                        .setAutoCancelDuration(2, TimeUnit.SECONDS)
+                        .build());
     }
 
     /**
@@ -211,6 +238,7 @@ public class BarcodeScanner
         private ScanMode scanMode;
         @Nullable
         private Integer lensFacing;
+        private boolean autoFocus;
         @Nullable
         private ResultPointCallback resultPointCallback;
 
@@ -381,6 +409,15 @@ public class BarcodeScanner
                       });
             }
             return this;
+        }
+
+        /**
+         * Enable/disable auto-focus.
+         *
+         * @param enable {@code true} to enable
+         */
+        public void setAutoFocus(final boolean enable) {
+            this.autoFocus = enable;
         }
 
         /**

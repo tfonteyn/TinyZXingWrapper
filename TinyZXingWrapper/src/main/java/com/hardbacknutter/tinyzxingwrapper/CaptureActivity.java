@@ -47,21 +47,23 @@ public class CaptureActivity
         extends AppCompatActivity {
 
     private static final long TIMEOUT_NOT_SET = -1;
-    private PreviewView previewView;
-    @SuppressWarnings("FieldCanBeLocal")
-    @Nullable
-    private TzwViewfinderView viewFinderView;
-    @SuppressWarnings("FieldCanBeLocal")
-    @Nullable
-    private TextView statusTextView;
-    @Nullable
-    private MaterialButton torchButton;
+    private long inactivityTimeOutInMs = TIMEOUT_NOT_SET;
+    private long hardTimeOutInMs = TIMEOUT_NOT_SET;
+
     @SuppressWarnings("FieldCanBeLocal")
     @Nullable
     private InactivityTimer inactivityTimer;
-    private boolean torchEnabled;
+
+    private PreviewView previewView;
+
     @Nullable
-    private Integer lensFacing;
+    private MaterialButton torchButton;
+    /** Allows changing while scanning. */
+    private boolean torchEnabled;
+
+    @Nullable
+    private BarcodeScanner scanner;
+
     @Nullable
     private List<String> metaDataToReturn;
 
@@ -85,8 +87,7 @@ public class CaptureActivity
             finish();
         }
     };
-    @Nullable
-    private BarcodeScanner scanner;
+
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -100,8 +101,6 @@ public class CaptureActivity
                             finish();
                         }
                     });
-    private long inactivityTimeOutInMs = TIMEOUT_NOT_SET;
-    private long hardTimeOutInMs = TIMEOUT_NOT_SET;
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -129,10 +128,17 @@ public class CaptureActivity
         if (args != null) {
             metaDataToReturn = args.getStringArrayList(ScanOptions.Option.RETURN_META_DATA);
 
+            // only set if present, otherwise let the device decide.
+            if (args.containsKey(ScanOptions.Option.CAMERA_LENS_FACING)) {
+                builder.setCameraLensFacing(args.getInt(ScanOptions.Option.CAMERA_LENS_FACING,
+                                                        CameraSelector.LENS_FACING_BACK));
+            }
+
+            builder.setAutoFocus(args.getBoolean(ScanOptions.Option.AUTO_FOCUS, false));
             builder.addHints(args);
         }
 
-        viewFinderView = findViewById(R.id.tzw_viewfinder_view);
+        final TzwViewfinderView viewFinderView = findViewById(R.id.tzw_viewfinder_view);
         if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
             builder.setResultPointCallback(viewFinderView);
         }
@@ -141,21 +147,13 @@ public class CaptureActivity
         if (args != null) {
             torchEnabled = args.getBoolean(ScanOptions.Option.TORCH_ENABLED, false);
 
-            // only set if present, otherwise let the device decide.
-            if (args.containsKey(ScanOptions.Option.CAMERA_LENS_FACING)) {
-                lensFacing = args.getInt(ScanOptions.Option.CAMERA_LENS_FACING,
-                                         CameraSelector.LENS_FACING_BACK);
-            }
-
             inactivityTimeOutInMs = args.getLong(Option.INACTIVITY_TIMEOUT_MS, TIMEOUT_NOT_SET);
             hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
         }
 
-        builder.setCameraLensFacing(lensFacing);
-
         scanner = builder.build(this);
-        scanner.setTorch(torchEnabled);
 
+        scanner.setTorch(torchEnabled);
 
         getLifecycle().addObserver(scanner);
 
@@ -197,9 +195,7 @@ public class CaptureActivity
     protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(ScanOptions.Option.TORCH_ENABLED, torchEnabled);
-        if (lensFacing != null) {
-            outState.putInt(ScanOptions.Option.CAMERA_LENS_FACING, lensFacing);
-        }
+
         if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
             outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);
         }
@@ -246,7 +242,7 @@ public class CaptureActivity
      * @param args method will parse its own options
      */
     private void initStatusText(@Nullable final Bundle args) {
-        statusTextView = findViewById(R.id.tzw_status_view);
+        final TextView statusTextView = findViewById(R.id.tzw_status_view);
         if (statusTextView != null) {
             String statusText = null;
             if (args != null) {

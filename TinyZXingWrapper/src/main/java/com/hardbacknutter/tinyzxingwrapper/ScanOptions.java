@@ -67,6 +67,19 @@ public class ScanOptions {
     }
 
     /**
+     * Enable auto-focus. By default disabled (i.e. left to the device to decide).
+     *
+     * @param enable {@code true} to enable
+     *
+     * @return this
+     */
+    @NonNull
+    public ScanOptions setAutoFocus(final boolean enable) {
+        intent.putExtra(Option.AUTO_FOCUS, enable);
+        return this;
+    }
+
+    /**
      * Set the desired barcode formats to try and decode.
      * <p>
      * <strong>IMPORTANT:</strong>
@@ -282,6 +295,17 @@ public class ScanOptions {
          * @see ScanOptions#setUseCameraWithLensFacing(int)
          */
         public static final String CAMERA_LENS_FACING = "CAMERA_LENS_FACING";
+
+        /**
+         * Enable auto-focus to the center of the preview.
+         * <p>
+         * Type: boolean
+         * <p>
+         * Default: {@code false}
+         *
+         * @see ScanOptions#setAutoFocus(boolean)
+         */
+        public static final String AUTO_FOCUS = "AUTO_FOCUS";
 
         /**
          * Advanced usage. Request to include metadata in the result intent.
