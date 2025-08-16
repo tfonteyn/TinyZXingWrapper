@@ -93,7 +93,7 @@ public class BarcodeScanner
     @GuardedBy("lock")
     @Nullable
     private CameraControl cameraControl;
-    private boolean autoFocus;
+    private final boolean autoFocus;
 
     private BarcodeScanner(@NonNull final Context context,
                            @NonNull final Builder builder) {
@@ -246,9 +246,13 @@ public class BarcodeScanner
          * Set the {@link ScanMode}.
          *
          * @param mode to use
+         *
+         * @return {@code this}
          */
-        public void setScanMode(@NonNull final ScanMode mode) {
+        @NonNull
+        public Builder setScanMode(@NonNull final ScanMode mode) {
             this.scanMode = mode;
+            return this;
         }
 
         /**
@@ -258,7 +262,7 @@ public class BarcodeScanner
          *
          * @param decoderFactory to use
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder setDecoderFactory(@NonNull final DecoderFactory decoderFactory) {
@@ -273,7 +277,7 @@ public class BarcodeScanner
          *
          * @param barcodeFormats the {@link BarcodeFormat}s to scan for
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder setBarcodeFormats(@NonNull final List<BarcodeFormat> barcodeFormats) {
@@ -291,7 +295,7 @@ public class BarcodeScanner
          *
          * @param enabled flag
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder setAlsoTryInverted(final boolean enabled) {
@@ -306,7 +310,7 @@ public class BarcodeScanner
          *
          * @param enabled flag
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder setTryHarder(final boolean enabled) {
@@ -326,7 +330,7 @@ public class BarcodeScanner
          * @param hintType to add
          * @param hintData to add
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder addHint(@NonNull final DecodeHintType hintType,
@@ -359,7 +363,7 @@ public class BarcodeScanner
          *
          * @param args a Bundle with hints; may contain other options which will be ignored.
          *
-         * @return this
+         * @return {@code this}
          *
          * @see ScanOptions#setBarcodeFormats(List)
          */
@@ -372,8 +376,8 @@ public class BarcodeScanner
                       .forEach(hintType -> {
                           final String hintName = hintType.name();
                           if (args.containsKey(hintName)) {
-                              // A switch 'hint': if present, store it with a boolean 'True'
-                              // (this is faster than 6 string equality test)
+                              // A switch 'hint': if present, store it with a boolean 'True'.
+                              // ZXing checks "contains", not the actual value!
                               // PURE_BARCODE
                               // TRY_HARDER
                               // ASSUME_CODE_39_CHECK_DIGIT
@@ -385,12 +389,12 @@ public class BarcodeScanner
 
                               } else if ("POSSIBLE_FORMATS".equals(hintName)) {
                                   // the value is ArrayList of strings with the enum names.
-                                  // Convert them back to the actual enums.
-                                  final ArrayList<String> list = args.getStringArrayList(
+                                  // Convert the String values back to the actual enums.
+                                  final ArrayList<String> values = args.getStringArrayList(
                                           hintName);
-                                  if (list != null) {
+                                  if (values != null) {
                                       final List<BarcodeFormat> formats =
-                                              list.stream()
+                                              values.stream()
                                                   .map(BarcodeFormat::valueOf)
                                                   .collect(Collectors.toList());
                                       this.hints.put(hintType, formats);
@@ -415,9 +419,13 @@ public class BarcodeScanner
          * Enable/disable auto-focus.
          *
          * @param enable {@code true} to enable
+         *
+         * @return {@code this}
          */
-        public void setAutoFocus(final boolean enable) {
+        @NonNull
+        public Builder setAutoFocus(final boolean enable) {
             this.autoFocus = enable;
+            return this;
         }
 
         /**
@@ -431,6 +439,8 @@ public class BarcodeScanner
          * </ul>
          *
          * @param lensFacing preferred
+         *
+         * @return {@code this}
          */
         @NonNull
         public Builder setCameraLensFacing(@Nullable final Integer lensFacing) {
@@ -450,7 +460,7 @@ public class BarcodeScanner
          *
          * @param listener a listener; can be {@code null} for none.
          *
-         * @return this
+         * @return {@code this}
          */
         @NonNull
         public Builder setResultPointCallback(@Nullable final ResultPointCallback listener) {

@@ -36,19 +36,25 @@ public class ScanOptions {
     private Class<?> captureActivity = CaptureActivity.class;
 
     /**
+     * Targets {@link BarcodeScanner}.
+     * <p>
      * Enable the torch.
      *
      * @param enable {@code true} to enable the torch
      *
      * @return this
+     *
+     * @see ScanOptions.Option#TORCH_ENABLED
      */
     @NonNull
     public ScanOptions setTorchEnabled(final boolean enable) {
-        intent.putExtra(Option.TORCH_ENABLED, enable);
+        intent.putExtra(ScanOptions.Option.TORCH_ENABLED, enable);
         return this;
     }
 
     /**
+     * Targets {@link BarcodeScanner}.
+     * <p>
      * Select a specific camera - i.e. with the lens facing the given direction.
      * Note this is <strong>not</strong> a camera id!
      *
@@ -56,30 +62,60 @@ public class ScanOptions {
      *                   or {@link CameraSelector#LENS_FACING_BACK}
      *
      * @return this
+     *
+     * @see ScanOptions.Option#CAMERA_LENS_FACING
      */
     @NonNull
     public ScanOptions setUseCameraWithLensFacing(final int lensFacing) {
         if (lensFacing == CameraSelector.LENS_FACING_FRONT
             || lensFacing == CameraSelector.LENS_FACING_BACK) {
-            intent.putExtra(Option.CAMERA_LENS_FACING, lensFacing);
+            intent.putExtra(ScanOptions.Option.CAMERA_LENS_FACING, lensFacing);
         }
         return this;
     }
 
-    /**
+    /**Targets {@link BarcodeScanner}.
+     * <p>
      * Enable auto-focus. By default disabled (i.e. left to the device to decide).
      *
      * @param enable {@code true} to enable
      *
      * @return this
+     *
+     * @see ScanOptions.Option#AUTO_FOCUS
      */
     @NonNull
     public ScanOptions setAutoFocus(final boolean enable) {
-        intent.putExtra(Option.AUTO_FOCUS, enable);
+        intent.putExtra(ScanOptions.Option.AUTO_FOCUS, enable);
         return this;
     }
 
     /**
+     * Targets {@link BarcodeScanner}.
+     * <p>
+     * Request extra/available meta data to be returned.
+     *
+     * @param list of {@link ResultMetadataType} to return if possible
+     *
+     * @return this
+     *
+     * @see ScanOptions.Option#RETURN_META_DATA
+     */
+    @NonNull
+    public ScanOptions setReturnMetadata(@NonNull final List<ResultMetadataType> list) {
+        if (!list.isEmpty()) {
+            intent.putStringArrayListExtra(ScanOptions.Option.RETURN_META_DATA,
+                                           list.stream()
+                                               .map(Enum::name)
+                                               .collect(Collectors.toCollection(ArrayList::new)));
+        }
+        return this;
+    }
+
+
+    /**
+     * Targets {@link com.google.zxing.Reader}.
+     * <p>
      * Set the desired barcode formats to try and decode.
      * <p>
      * <strong>IMPORTANT:</strong>
@@ -107,6 +143,8 @@ public class ScanOptions {
     }
 
     /**
+     * Targets {@link com.google.zxing.Reader}.
+     * <p>
      * If true, also tries to decode as inverted image.
      *
      * @param enabled flag
@@ -114,14 +152,21 @@ public class ScanOptions {
      * @return this
      *
      * @see DecodeHintType#ALSO_INVERTED
+     * @see BarcodeScanner.Builder#addHints(Bundle)
      */
     @NonNull
     public ScanOptions setAlsoTryInverted(final boolean enabled) {
-        intent.putExtra(DecodeHintType.ALSO_INVERTED.name(), enabled);
+        if (enabled) {
+            intent.putExtra(DecodeHintType.ALSO_INVERTED.name(), true);
+        } else {
+            intent.removeExtra(DecodeHintType.ALSO_INVERTED.name());
+        }
         return this;
     }
 
     /**
+     * Targets {@link com.google.zxing.Reader}.
+     * <p>
      * Spend more time to try to find a barcode; optimize for accuracy, not speed.
      *
      * @param enabled flag
@@ -129,30 +174,18 @@ public class ScanOptions {
      * @return this
      *
      * @see DecodeHintType#TRY_HARDER
+     * @see BarcodeScanner.Builder#addHints(Bundle)
      */
     @NonNull
     public ScanOptions setTryHarder(final boolean enabled) {
-        intent.putExtra(DecodeHintType.TRY_HARDER.name(), enabled);
-        return this;
-    }
-
-    /**
-     * Request extra/available meta data to be returned.
-     *
-     * @param list of {@link ResultMetadataType} to return if possible
-     *
-     * @return this
-     */
-    @NonNull
-    public ScanOptions setReturnMetadata(@NonNull final List<ResultMetadataType> list) {
-        if (!list.isEmpty()) {
-            intent.putStringArrayListExtra(Option.RETURN_META_DATA,
-                                           list.stream()
-                                               .map(Enum::name)
-                                               .collect(Collectors.toCollection(ArrayList::new)));
+        if (enabled) {
+            intent.putExtra(DecodeHintType.TRY_HARDER.name(), true);
+        } else {
+            intent.removeExtra(DecodeHintType.TRY_HARDER.name());
         }
         return this;
     }
+
 
     /**
      * Targets {@link CaptureActivity}.
@@ -165,6 +198,8 @@ public class ScanOptions {
      * @param prompt the prompt to display
      *
      * @return this
+     *
+     * @see CaptureActivity.Option#PROMPT
      */
     @NonNull
     public final ScanOptions setPrompt(@Nullable final String prompt) {
@@ -186,6 +221,8 @@ public class ScanOptions {
      * @param timeout in milliseconds
      *
      * @return this
+     *
+     * @see CaptureActivity.Option#TIMEOUT_MS
      */
     @NonNull
     public ScanOptions setTimeout(final long timeout) {
@@ -207,6 +244,8 @@ public class ScanOptions {
      * @param timeout in milliseconds
      *
      * @return this
+     *
+     * @see CaptureActivity.Option#INACTIVITY_TIMEOUT_MS
      */
     @NonNull
     public ScanOptions setInactivityTimeout(final long timeout) {
@@ -228,8 +267,10 @@ public class ScanOptions {
         return this;
     }
 
+
     /**
      * Retrieve the input 'extras' to set any desired custom arguments (decoder hints)
+     * for the {@link com.google.zxing.Reader}.
      *
      * @return the input Intent 'extras' bundle
      */
@@ -264,7 +305,7 @@ public class ScanOptions {
     }
 
     /**
-     * Arguments implemented by the standalone scanner ({@link BarcodeScanner}.
+     * Arguments implemented by the standalone {@link BarcodeScanner}.
      * <p>
      * Other than the keys in this class, you can also pass in any keys as defined
      * in {@link DecodeHintType} with the exception of
