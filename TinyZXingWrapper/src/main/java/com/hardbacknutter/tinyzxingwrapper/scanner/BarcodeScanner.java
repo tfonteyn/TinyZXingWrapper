@@ -123,6 +123,10 @@ public class BarcodeScanner
         }
     }
 
+    private boolean isImageFlipped() {
+        return lensFacing != null && lensFacing == CameraSelector.LENS_FACING_FRONT;
+    }
+
     /**
      * Start the scanner.
      *
@@ -136,13 +140,9 @@ public class BarcodeScanner
         cameraProviderFuture.addListener(
                 () -> {
                     try {
-                        final boolean isImageFlipped;
                         final CameraSelector.Builder csb = new CameraSelector.Builder();
                         if (lensFacing != null) {
                             csb.requireLensFacing(lensFacing);
-                            isImageFlipped = lensFacing == CameraSelector.LENS_FACING_FRONT;
-                        } else {
-                            isImageFlipped = false;
                         }
                         final CameraSelector cameraSelector = csb.build();
 
@@ -152,7 +152,7 @@ public class BarcodeScanner
                         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
                         final ImageAnalysis.Analyzer analyzer =
-                                new MyAnalyzer(decoder, isImageFlipped, resultListener);
+                                new MyAnalyzer(decoder, isImageFlipped(), resultListener);
 
                         final ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
                                 .setOutputImageRotationEnabled(true)
@@ -452,8 +452,8 @@ public class BarcodeScanner
                            final boolean isImageFlipped,
                            @NonNull final DecoderResultListener resultListener) {
             this.decoder = decoder;
-            this.resultListener = resultListener;
             this.isImageFlipped = isImageFlipped;
+            this.resultListener = resultListener;
         }
 
         @Override
