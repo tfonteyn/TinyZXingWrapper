@@ -194,10 +194,13 @@ public class BarcodeScanner
 
                             final Camera camera = cameraProvider
                                     .bindToLifecycle(lifecycleOwner, cameraSelector,
+                                                     // use-cases:
                                                      preview,
                                                      imageAnalyzer);
 
                             cameraControl = camera.getCameraControl();
+
+                            // initial settings
                             cameraControl.enableTorch(enableTorch);
                             cameraControl.setLinearZoom(linearZoom);
 
@@ -217,14 +220,13 @@ public class BarcodeScanner
         final float previewViewWidth = previewView.getWidth();
         final float previewViewHeight = previewView.getHeight();
 
-        final MeteringPoint autoFocusPoint = new SurfaceOrientedMeteringPointFactory(
-                previewViewWidth, previewViewHeight)
-                .createPoint(previewViewWidth / 2.0f, previewViewHeight / 2.0f);
+        final MeteringPoint autoFocusPoint =
+                new SurfaceOrientedMeteringPointFactory(previewViewWidth, previewViewHeight)
+                        .createPoint(previewViewWidth / 2.0f, previewViewHeight / 2.0f);
 
         //noinspection DataFlowIssue
         cameraControl.startFocusAndMetering(
-                new FocusMeteringAction
-                        .Builder(autoFocusPoint, FocusMeteringAction.FLAG_AF)
+                new FocusMeteringAction.Builder(autoFocusPoint, FocusMeteringAction.FLAG_AF)
                         .setAutoCancelDuration(2, TimeUnit.SECONDS)
                         .build());
     }
@@ -593,10 +595,11 @@ public class BarcodeScanner
             cropHeight = Math.min(cropHeight, imageHeight - top);
 
             // Example values as measured in a test holding the phone in portrait:
-            // imageWidth=480, imageHeight=640, yPlane.getRowStride()=512
+            // imageWidth=480,     imageHeight=640,      yPlane.getRowStride()=512
             // previewWidthPx=900, previewHeightPx=574
             // scaleX=0.53333336, scaleY=1.1149826, scale=0.53333336
-            // cropped: left=0, top=167, cw=480, ch=306
+            // cropped: left=0, top=167, cropWidth=480, cropHeight=306
+
             return new PlanarYUVLuminanceSource(
                     yData,
                     yPlane.getRowStride(), imageHeight,
