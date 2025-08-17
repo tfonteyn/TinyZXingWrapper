@@ -46,6 +46,9 @@ import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 public class CaptureActivity
         extends AppCompatActivity {
 
+    private static final String TAG = "CaptureActivity";
+    private static final String BKEY_TORCH = TAG + ":torch";
+
     private static final long TIMEOUT_NOT_SET = -1;
     private long inactivityTimeOutInMs = TIMEOUT_NOT_SET;
     private long hardTimeOutInMs = TIMEOUT_NOT_SET;
@@ -58,6 +61,7 @@ public class CaptureActivity
 
     @Nullable
     private MaterialButton torchButton;
+
     /** Allows changing while scanning. */
     private boolean torchEnabled;
 
@@ -145,7 +149,7 @@ public class CaptureActivity
 
         args = savedInstanceState != null ? savedInstanceState : args;
         if (args != null) {
-            torchEnabled = args.getBoolean(ScanOptions.Option.TORCH_ENABLED, false);
+            torchEnabled = args.getBoolean(BKEY_TORCH, false);
 
             inactivityTimeOutInMs = args.getLong(Option.INACTIVITY_TIMEOUT_MS, TIMEOUT_NOT_SET);
             hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
@@ -194,7 +198,7 @@ public class CaptureActivity
     @Override
     protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(ScanOptions.Option.TORCH_ENABLED, torchEnabled);
+        outState.putBoolean(BKEY_TORCH, torchEnabled);
 
         if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
             outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);

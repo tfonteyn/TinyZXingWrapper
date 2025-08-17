@@ -38,23 +38,6 @@ public class ScanOptions {
     /**
      * Targets {@link BarcodeScanner}.
      * <p>
-     * Enable the torch.
-     *
-     * @param enable {@code true} to enable the torch
-     *
-     * @return this
-     *
-     * @see ScanOptions.Option#TORCH_ENABLED
-     */
-    @NonNull
-    public ScanOptions setTorchEnabled(final boolean enable) {
-        intent.putExtra(ScanOptions.Option.TORCH_ENABLED, enable);
-        return this;
-    }
-
-    /**
-     * Targets {@link BarcodeScanner}.
-     * <p>
      * Select a specific camera - i.e. with the lens facing the given direction.
      * Note this is <strong>not</strong> a camera id!
      *
@@ -74,7 +57,8 @@ public class ScanOptions {
         return this;
     }
 
-    /**Targets {@link BarcodeScanner}.
+    /**
+     * Targets {@link BarcodeScanner}.
      * <p>
      * Enable auto-focus. By default disabled (i.e. left to the device to decide).
      *
@@ -312,17 +296,6 @@ public class ScanOptions {
      * {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} which is used internally.
      */
     public static final class Option {
-
-        /**
-         * Enables the torch.
-         * <p>
-         * Type: boolean
-         * <p>
-         * Default: {@code false}
-         *
-         * @see ScanOptions#setTorchEnabled(boolean)
-         */
-        public static final String TORCH_ENABLED = "TORCH_ENABLED";
 
         /**
          * Select a specific camera with the lens facing in the desired direction.
