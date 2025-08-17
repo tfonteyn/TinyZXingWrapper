@@ -18,6 +18,7 @@ import androidx.camera.core.SurfaceOrientedMeteringPointFactory;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.math.MathUtils;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -158,7 +159,8 @@ public class BarcodeScanner
                         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
                         final ImageAnalysis.Analyzer analyzer =
-                                new MyAnalyzer(decoder, isImageFlipped(), resultListener);
+                                new BarcodeAnalyzer(previewView.getHeight(), previewView.getWidth(),
+                                                    decoder, isImageFlipped(), resultListener);
 
                         final ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
                                 .setOutputImageRotationEnabled(true)
@@ -481,9 +483,13 @@ public class BarcodeScanner
         }
     }
 
-    private class MyAnalyzer
+    private class BarcodeAnalyzer
             implements ImageAnalysis.Analyzer {
 
+        private static final String TAG = "BarcodeAnalyzer";
+
+        private final int previewHeightPx;
+        private final int previewWidthPx;
         @NonNull
         private final Decoder decoder;
         @NonNull
@@ -495,9 +501,13 @@ public class BarcodeScanner
         @Nullable
         private String lastBarcodeText;
 
-        private MyAnalyzer(@NonNull final Decoder decoder,
-                           final boolean isImageFlipped,
-                           @NonNull final DecoderResultListener resultListener) {
+        private BarcodeAnalyzer(final int previewHeightPx,
+                                final int previewWidthPx,
+                                @NonNull final Decoder decoder,
+                                final boolean isImageFlipped,
+                                @NonNull final DecoderResultListener resultListener) {
+            this.previewHeightPx = previewHeightPx;
+            this.previewWidthPx = previewWidthPx;
             this.decoder = decoder;
             this.isImageFlipped = isImageFlipped;
             this.resultListener = resultListener;
@@ -525,20 +535,67 @@ public class BarcodeScanner
         @NonNull
         private LuminanceSource process(@NonNull final ImageProxy image) {
             // The image provided has format ImageFormat.YUV_420_888.
-            // so we only take the Y data from plane 0
+            // Take the Y data from plane 0
             final ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+            final byte[] yData = getBytes(yPlane);
 
+            // the image buffer as received from the camera.
+            final int imageWidth = image.getWidth();
+            final int imageHeight = image.getHeight();
+            final int h;
+            final int w;
+            // swap width and height depending on device orientation
+            if (imageWidth > imageHeight) {
+                // Landscape image buffer
+                h = previewWidthPx;
+                w = previewHeightPx;
+            } else {
+                // Portrait image buffer
+                w = previewWidthPx;
+                h = previewHeightPx;
+            }
+
+            // Crop the buffer to the size of the preview.
+            final float scaleX = (float) imageWidth / w;
+            final float scaleY = (float) imageHeight / h;
+            // Use the smaller scale factor to match centerCrop behavior
+            final float scale = Math.min(scaleX, scaleY);
+            // Now, calculate the crop size in the image buffer
+            int cropWidth = (int) (w * scale);
+            int cropHeight = (int) (h * scale);
+
+            // Center the crop rectangle, ensuring it is fully inside the image buffer
+            final int left = Math.max(0, (imageWidth - cropWidth) / 2);
+            final int top = Math.max(0, (imageHeight - cropHeight) / 2);
+            cropWidth = Math.min(cropWidth, imageWidth - left);
+            cropHeight = Math.min(cropHeight, imageHeight - top);
+
+            // Example values as measured in a test holding the phone in portrait:
+            // imageWidth=480, imageHeight=640, yPlane.getRowStride()=512
+            // previewWidthPx=900, previewHeightPx=574
+            // scaleX=0.53333336, scaleY=1.1149826, scale=0.53333336
+            // cropped: left=0, top=167, cw=480, ch=306
+            return new PlanarYUVLuminanceSource(
+                    yData,
+                    yPlane.getRowStride(), imageHeight,
+                    left, top, cropWidth, cropHeight,
+                    isImageFlipped);
+        }
+
+        /**
+         * Convert the given plane to a byte buffer.
+         *
+         * @param yPlane to convert
+         *
+         * @return byte[]
+         */
+        @NonNull
+        private byte[] getBytes(@NonNull final ImageProxy.PlaneProxy yPlane) {
             final ByteBuffer yByteBuffer = yPlane.getBuffer();
             yByteBuffer.rewind();
             final byte[] yData = new byte[yByteBuffer.remaining()];
             yByteBuffer.get(yData);
-
-            return new PlanarYUVLuminanceSource(
-                    yData,
-                    yPlane.getRowStride(), image.getHeight(),
-                    // no need to crop, our preview is already sized down.
-                    0, 0, image.getWidth(), image.getHeight(),
-                    isImageFlipped);
+            return yData;
         }
 
         private void forwardResult(@NonNull final Result result) {
