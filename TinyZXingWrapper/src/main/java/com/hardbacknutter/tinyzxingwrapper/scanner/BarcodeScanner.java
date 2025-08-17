@@ -3,6 +3,7 @@ package com.hardbacknutter.tinyzxingwrapper.scanner;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.FloatRange;
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -86,7 +87,8 @@ public class BarcodeScanner
     private final Integer lensFacing;
     @Nullable
     private final ResultPointCallback resultPointCallback;
-
+    private final boolean autoFocus;
+    private float linearZoom;
     private boolean enableTorch;
     @GuardedBy("lock")
     @Nullable
@@ -94,7 +96,6 @@ public class BarcodeScanner
     @GuardedBy("lock")
     @Nullable
     private CameraControl cameraControl;
-    private final boolean autoFocus;
 
     private BarcodeScanner(@NonNull final Context context,
                            @NonNull final Builder builder) {
@@ -115,9 +116,12 @@ public class BarcodeScanner
     }
 
     /**
-     * Switch the torch (flashlight) on or off. Takes effect immediately.
+     * Switch the torch (flashlight) on or off.
+     * Will be ignored if the device has no torch.
      * <p>
-     * * By default disabled.
+     * Takes effect immediately.
+     * <p>
+     * By default disabled.
      *
      * @param enable {@code true} to enable
      */
@@ -126,6 +130,23 @@ public class BarcodeScanner
         synchronized (lock) {
             if (cameraControl != null) {
                 cameraControl.enableTorch(enableTorch);
+            }
+        }
+    }
+
+    /**
+     * Set the linear zoom for the camera.
+     * Will be ignored if the camera has no zoom-function.
+     * <p>
+     * Takes effect immediately.
+     *
+     * @param zoom value to set; {@code 0} no zoom, {@code 1} maximum zoom.
+     */
+    public void setLinearZoom(@FloatRange(from = 0.0, to = 1.0) final float zoom) {
+        this.linearZoom = MathUtils.clamp(zoom, 0f, 1f);
+        synchronized (lock) {
+            if (cameraControl != null) {
+                cameraControl.setLinearZoom(linearZoom);
             }
         }
     }
@@ -178,6 +199,7 @@ public class BarcodeScanner
 
                             cameraControl = camera.getCameraControl();
                             cameraControl.enableTorch(enableTorch);
+                            cameraControl.setLinearZoom(linearZoom);
 
                             if (autoFocus) {
                                 configureAutoFocus(previewView);
@@ -275,7 +297,7 @@ public class BarcodeScanner
         /**
          * Set the desired barcode formats to scan.
          * <p>
-         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         * Ignored if {@link #setDecoderFactory(DecoderFactory)} is used.
          *
          * @param barcodeFormats the {@link BarcodeFormat}s to scan for
          *
@@ -293,7 +315,7 @@ public class BarcodeScanner
          * Set a hint making the decoder try both normal (black on white)
          * and inverse scanning (white on black).
          * <p>
-         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         * Ignored if {@link #setDecoderFactory(DecoderFactory)} is used.
          *
          * @param enabled flag
          *
@@ -308,7 +330,7 @@ public class BarcodeScanner
         /**
          * Set a hint making the decoder try a number of extra ways to get a result.
          * <p>
-         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         * Ignored if {@link #setDecoderFactory(DecoderFactory)} is used.
          *
          * @param enabled flag
          *
@@ -327,7 +349,7 @@ public class BarcodeScanner
          * {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} is NOT supported
          * as it's used internally.
          * <p>
-         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         * Ignored if {@link #setDecoderFactory(DecoderFactory)} is used.
          *
          * @param hintType to add
          * @param hintData to add
@@ -361,7 +383,7 @@ public class BarcodeScanner
          * Note that {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} is NOT supported
          * as it's used internally.
          * <p>
-         * Only used if {@link #setDecoderFactory(DecoderFactory)} is <strong>NOT</strong> called.
+         * Ignored if {@link #setDecoderFactory(DecoderFactory)} is used.
          *
          * @param args a Bundle with hints; may contain other options which will be ignored.
          *
@@ -397,8 +419,8 @@ public class BarcodeScanner
                                   if (values != null) {
                                       final List<BarcodeFormat> formats =
                                               values.stream()
-                                                  .map(BarcodeFormat::valueOf)
-                                                  .collect(Collectors.toList());
+                                                    .map(BarcodeFormat::valueOf)
+                                                    .collect(Collectors.toList());
                                       this.hints.put(hintType, formats);
                                   }
                               } else {
