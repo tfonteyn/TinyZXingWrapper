@@ -10,9 +10,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.CameraSelector;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.DecodeHintType;
 
 import java.util.List;
 
@@ -26,8 +26,6 @@ public class MainActivity
         extends AppCompatActivity {
 
     private ActivityMainBinding vb;
-    private boolean autoFocus;
-
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher =
             registerForActivityResult(new ScanContract(), result -> {
                 if (result.isSuccess()) {
@@ -71,12 +69,16 @@ public class MainActivity
                 }
             });
 
+    private boolean autoFocus;
+    private boolean tryHarder;
+    private boolean alsoInverted;
+
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         // All insets rely on android:fitsSystemWindows="true"
         // as set on the top CoordinatorLayout.
         // The status-bar will be transparent.
-        // Not the "best" look, but more then good enough for this app
+        // Not the "best" look, but good enough for this example app
 
         // EdgeToEdge on Android pre-15; but only starting Android 11 up
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -93,14 +95,26 @@ public class MainActivity
         }
 
         if (savedInstanceState != null) {
-            autoFocus = savedInstanceState.getBoolean(ScanOptions.Option.AUTO_FOCUS, false);
-            vb.autoFocus.setChecked(autoFocus);
+            autoFocus = savedInstanceState.getBoolean(ScanOptions.Option.AUTO_FOCUS,
+                                                      false);
+
+            tryHarder = savedInstanceState.getBoolean(DecodeHintType.TRY_HARDER.name(),
+                                                      false);
+            alsoInverted = savedInstanceState.getBoolean(DecodeHintType.ALSO_INVERTED.name(),
+                                                         false);
         }
 
+        vb.autoFocus.setChecked(autoFocus);
         vb.autoFocus.setOnCheckedChangeListener((v, isChecked) ->
                                                         this.autoFocus = isChecked);
+        vb.tryHarder.setChecked(autoFocus);
+        vb.tryHarder.setOnCheckedChangeListener((v, isChecked) ->
+                                                        this.tryHarder = isChecked);
+        vb.alsoInverted.setChecked(alsoInverted);
+        vb.alsoInverted.setOnCheckedChangeListener((v, isChecked) ->
+                                                           this.alsoInverted = isChecked);
+
         vb.btnScanGeneric.setOnClickListener(this::scanGeneric);
-        vb.btnScanGenericUsingFrontCamera.setOnClickListener(this::scanGenericFrontCamera);
         vb.btnScanProduct.setOnClickListener(this::scanProduct);
         vb.btnScanQrCode.setOnClickListener(this::scanQr);
         vb.btnScanDataMatrix.setOnClickListener(this::scanDataMatrix);
@@ -108,21 +122,17 @@ public class MainActivity
 
     private void scanGeneric(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
-                .setAutoFocus(autoFocus);
-        barcodeLauncher.launch(options);
-    }
-
-    private void scanGenericFrontCamera(@NonNull final View view) {
-        final ScanOptions options = new ScanOptions()
                 .setAutoFocus(autoFocus)
-                .setPrompt(getString(R.string.msg_scan_prompt))
-                .setUseCameraWithLensFacing(CameraSelector.LENS_FACING_FRONT);
+                .setTryHarder(tryHarder)
+                .setAlsoTryInverted(alsoInverted);
         barcodeLauncher.launch(options);
     }
 
     private void scanProduct(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
                 .setAutoFocus(autoFocus)
+                .setTryHarder(tryHarder)
+                .setAlsoTryInverted(alsoInverted)
                 .setBarcodeFormats(BarcodeFamily.PRODUCT);
         barcodeLauncher.launch(options);
     }
@@ -130,6 +140,8 @@ public class MainActivity
     private void scanQr(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
                 .setAutoFocus(autoFocus)
+                .setTryHarder(tryHarder)
+                .setAlsoTryInverted(alsoInverted)
                 .setBarcodeFormats(List.of(BarcodeFormat.QR_CODE));
         barcodeLauncher.launch(options);
     }
@@ -137,6 +149,8 @@ public class MainActivity
     private void scanDataMatrix(@NonNull final View view) {
         final ScanOptions options = new ScanOptions()
                 .setAutoFocus(autoFocus)
+                .setTryHarder(tryHarder)
+                .setAlsoTryInverted(alsoInverted)
                 .setBarcodeFormats(List.of(BarcodeFormat.DATA_MATRIX));
         barcodeLauncher.launch(options);
     }
@@ -145,5 +159,7 @@ public class MainActivity
     protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(ScanOptions.Option.AUTO_FOCUS, autoFocus);
+        outState.putBoolean(DecodeHintType.TRY_HARDER.name(), tryHarder);
+        outState.putBoolean(DecodeHintType.ALSO_INVERTED.name(), alsoInverted);
     }
 }
