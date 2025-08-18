@@ -228,9 +228,7 @@ public class CaptureActivity
     private void initTorchButton() {
         torchButton = findViewById(R.id.tzw_btn_torch);
         if (torchButton != null) {
-            final boolean hasTorch = getPackageManager()
-                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
+            final boolean hasTorch = scanner.hasTorch(this);
             torchButton.setVisibility(hasTorch ? View.VISIBLE : View.GONE);
             if (hasTorch) {
                 // set the initial state which depends on incoming args

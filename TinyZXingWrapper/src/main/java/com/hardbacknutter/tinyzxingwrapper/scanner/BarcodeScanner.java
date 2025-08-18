@@ -1,6 +1,7 @@
 package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -152,6 +153,11 @@ public class BarcodeScanner
                 cameraControl.setLinearZoom(linearZoom);
             }
         }
+    }
+
+    public boolean hasTorch(@NonNull final Context context) {
+        return context.getPackageManager()
+                      .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
     public boolean hasZoom(@NonNull final Context context) {
