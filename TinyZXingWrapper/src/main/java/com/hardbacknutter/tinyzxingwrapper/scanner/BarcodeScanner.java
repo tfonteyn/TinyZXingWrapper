@@ -1,6 +1,9 @@
 package com.hardbacknutter.tinyzxingwrapper.scanner;
 
 import android.content.Context;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 
 import androidx.annotation.FloatRange;
@@ -151,9 +154,26 @@ public class BarcodeScanner
         }
     }
 
-    @Nullable
-    public Integer getLensFacing() {
-        return lensFacing;
+    public boolean hasZoom(@NonNull final Context context) {
+        // we'll presume the default of the device is always the back camera.
+        final Integer ourLens = Objects.requireNonNullElse(
+                lensFacing, CameraCharacteristics.LENS_FACING_BACK);
+        final CameraManager cameraManager = (CameraManager)
+                context.getSystemService(Context.CAMERA_SERVICE);
+        try {
+            for (final String cameraId : cameraManager.getCameraIdList()) {
+                final CameraCharacteristics characteristics =
+                        cameraManager.getCameraCharacteristics(cameraId);
+                if (ourLens.equals(characteristics.get(CameraCharacteristics.LENS_FACING))) {
+                    final Float maxZoom = characteristics.get(
+                            CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+                    return maxZoom != null && maxZoom > 1.0f;
+                }
+            }
+        } catch (@NonNull final CameraAccessException ignore) {
+            // ignore
+        }
+        return false;
     }
 
     private boolean isImageFlipped() {

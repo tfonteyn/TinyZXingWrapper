@@ -136,7 +136,7 @@ public class CaptureActivity
 
         Bundle args = getIntent().getExtras();
         initScanner(args);
-        initZoom(scanner.getLensFacing());
+        initZoom();
         initTorchButton();
 
         args = savedInstanceState != null ? savedInstanceState : args;
@@ -200,11 +200,12 @@ public class CaptureActivity
         getLifecycle().addObserver(scanner);
     }
 
-    private void initZoom(@Nullable final Integer lensFacing) {
+    private void initZoom() {
         final Slider sliderView = findViewById(R.id.tzw_zoom_slider);
         if (sliderView != null) {
-            if (hasZoom(lensFacing)) {
-                sliderView.setVisibility(View.VISIBLE);
+            final boolean hasZoom = scanner.hasZoom(this);
+            sliderView.setVisibility(hasZoom ? View.VISIBLE : View.GONE);
+            if (hasZoom) {
                 sliderView.setValue(zoom);
                 sliderView.addOnChangeListener((slider, zoomValue, fromUser) -> {
                     if (fromUser) {
@@ -220,32 +221,8 @@ public class CaptureActivity
                         }
                     }
                 });
-            } else {
-                sliderView.setVisibility(View.GONE);
             }
         }
-    }
-
-    private boolean hasZoom(@Nullable final Integer lensFacing) {
-        // we'll presume the default of the device is always the back camera.
-        final Integer ourLens = Objects.requireNonNullElse(
-                lensFacing, CameraCharacteristics.LENS_FACING_BACK);
-        final CameraManager cameraManager = (CameraManager)
-                getSystemService(Context.CAMERA_SERVICE);
-        try {
-            for (final String cameraId : cameraManager.getCameraIdList()) {
-                final CameraCharacteristics characteristics =
-                        cameraManager.getCameraCharacteristics(cameraId);
-                if (ourLens.equals(characteristics.get(CameraCharacteristics.LENS_FACING))) {
-                    final Float maxZoom = characteristics.get(
-                            CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-                    return maxZoom != null && maxZoom > 1.0f;
-                }
-            }
-        } catch (@NonNull final CameraAccessException ignore) {
-            // ignore
-        }
-        return false;
     }
 
     private void initTorchButton() {
