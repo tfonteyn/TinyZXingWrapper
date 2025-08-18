@@ -151,6 +151,11 @@ public class BarcodeScanner
         }
     }
 
+    @Nullable
+    public Integer getLensFacing() {
+        return lensFacing;
+    }
+
     private boolean isImageFlipped() {
         return lensFacing != null && lensFacing == CameraSelector.LENS_FACING_FRONT;
     }

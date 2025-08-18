@@ -2,11 +2,17 @@ package com.hardbacknutter.tinyzxingwrapper;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -28,6 +34,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.slider.Slider;
 import com.google.zxing.Result;
 
 import java.util.List;
@@ -46,8 +53,10 @@ import com.hardbacknutter.tinyzxingwrapper.scanner.TzwViewfinderView;
 public class CaptureActivity
         extends AppCompatActivity {
 
-    private static final String TAG = "CaptureActivity";
-    private static final String BKEY_TORCH = TAG + ":torch";
+    private static final String PK_TORCH =
+            "com.hardbacknutter.tinyzxingwrapper.CaptureActivity.TORCH";
+    private static final String PK_ZOOM =
+            "com.hardbacknutter.tinyzxingwrapper.CaptureActivity.ZOOM";
 
     private static final long TIMEOUT_NOT_SET = -1;
     private long inactivityTimeOutInMs = TIMEOUT_NOT_SET;
@@ -64,8 +73,9 @@ public class CaptureActivity
 
     /** Allows changing while scanning. */
     private boolean torchEnabled;
+    /** Allows changing while scanning. */
+    private float zoom;
 
-    @Nullable
     private BarcodeScanner scanner;
 
     @Nullable
@@ -121,49 +131,17 @@ public class CaptureActivity
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        final PreviewView view = findViewById(R.id.tzw_preview);
-        previewView = Objects.requireNonNull(view, "Missing R.id.tzw_preview");
-
-        // Note that the ScanMode is kept as default (Single)
-        // and that we always use the default DecoderFactory
-        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
+        previewView = Objects.requireNonNull(findViewById(R.id.tzw_preview),
+                                             "Missing R.id.tzw_preview");
 
         Bundle args = getIntent().getExtras();
-        if (args != null) {
-            metaDataToReturn = args.getStringArrayList(ScanOptions.Option.RETURN_META_DATA);
-
-            // only set if present, otherwise let the device decide.
-            if (args.containsKey(ScanOptions.Option.CAMERA_LENS_FACING)) {
-                builder.setCameraLensFacing(args.getInt(ScanOptions.Option.CAMERA_LENS_FACING,
-                                                        CameraSelector.LENS_FACING_BACK));
-            }
-
-            builder.setAutoFocus(args.getBoolean(ScanOptions.Option.AUTO_FOCUS, false));
-            builder.addHints(args);
-        }
-
-        final TzwViewfinderView viewFinderView = findViewById(R.id.tzw_viewfinder_view);
-        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
-            builder.setResultPointCallback(viewFinderView);
-        }
+        initScanner(args);
+        initZoom(scanner.getLensFacing());
+        initTorchButton();
 
         args = savedInstanceState != null ? savedInstanceState : args;
-        if (args != null) {
-            torchEnabled = args.getBoolean(BKEY_TORCH, false);
-
-            inactivityTimeOutInMs = args.getLong(Option.INACTIVITY_TIMEOUT_MS, TIMEOUT_NOT_SET);
-            hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
-        }
-
-        scanner = builder.build(this);
-
-        scanner.setTorch(torchEnabled);
-
-        getLifecycle().addObserver(scanner);
-
-        initTorchButton();
         initStatusText(args);
-        initTimeoutHandlers();
+        initTimeoutHandlers(args);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
@@ -190,38 +168,101 @@ public class CaptureActivity
         });
     }
 
-    private void startScanner() {
-        //noinspection DataFlowIssue
-        scanner.start(this, previewView, decoderResultListener);
+    private void initScanner(@Nullable final Bundle args) {
+        // Note that the ScanMode is kept as default (Single)
+        // and that we always use the default DecoderFactory
+        final BarcodeScanner.Builder builder = new BarcodeScanner.Builder();
+
+        if (args != null) {
+            metaDataToReturn = args.getStringArrayList(ScanOptions.Option.RETURN_META_DATA);
+
+            // only set if present, otherwise let the device decide.
+            if (args.containsKey(ScanOptions.Option.CAMERA_LENS_FACING)) {
+                builder.setCameraLensFacing(args.getInt(ScanOptions.Option.CAMERA_LENS_FACING,
+                                                        CameraSelector.LENS_FACING_BACK));
+            }
+
+            builder.setAutoFocus(args.getBoolean(ScanOptions.Option.AUTO_FOCUS, false));
+            builder.addHints(args);
+        }
+
+        final TzwViewfinderView viewFinderView = findViewById(R.id.tzw_viewfinder_view);
+        if (viewFinderView != null && viewFinderView.isShowResultPoints()) {
+            builder.setResultPointCallback(viewFinderView);
+        }
+
+        scanner = builder.build(this);
+
+        readSettings();
+        scanner.setTorch(torchEnabled);
+        scanner.setLinearZoom(zoom);
+
+        getLifecycle().addObserver(scanner);
     }
 
-    @Override
-    protected void onSaveInstanceState(@NonNull final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(BKEY_TORCH, torchEnabled);
+    private void initZoom(@Nullable final Integer lensFacing) {
+        final Slider sliderView = findViewById(R.id.tzw_zoom_slider);
+        if (sliderView != null) {
+            if (hasZoom(lensFacing)) {
+                sliderView.setVisibility(View.VISIBLE);
+                sliderView.setValue(zoom);
+                sliderView.addOnChangeListener((slider, zoomValue, fromUser) -> {
+                    if (fromUser) {
+                        zoom = zoomValue;
+                        writeSettings();
+                        //noinspection DataFlowIssue
+                        scanner.setLinearZoom(zoom);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            slider.performHapticFeedback(
+                                    HapticFeedbackConstants.SEGMENT_FREQUENT_TICK);
+                        } else {
+                            slider.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                        }
+                    }
+                });
+            } else {
+                sliderView.setVisibility(View.GONE);
+            }
+        }
+    }
 
-        if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
-            outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);
+    private boolean hasZoom(@Nullable final Integer lensFacing) {
+        // we'll presume the default of the device is always the back camera.
+        final Integer ourLens = Objects.requireNonNullElse(
+                lensFacing, CameraCharacteristics.LENS_FACING_BACK);
+        final CameraManager cameraManager = (CameraManager)
+                getSystemService(Context.CAMERA_SERVICE);
+        try {
+            for (final String cameraId : cameraManager.getCameraIdList()) {
+                final CameraCharacteristics characteristics =
+                        cameraManager.getCameraCharacteristics(cameraId);
+                if (ourLens.equals(characteristics.get(CameraCharacteristics.LENS_FACING))) {
+                    final Float maxZoom = characteristics.get(
+                            CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+                    return maxZoom != null && maxZoom > 1.0f;
+                }
+            }
+        } catch (@NonNull final CameraAccessException ignore) {
+            // ignore
         }
-        if (hardTimeOutInMs > TIMEOUT_NOT_SET) {
-            outState.putLong(Option.TIMEOUT_MS, hardTimeOutInMs);
-        }
+        return false;
     }
 
     private void initTorchButton() {
         torchButton = findViewById(R.id.tzw_btn_torch);
         if (torchButton != null) {
-            final boolean hasFlash = getPackageManager()
+            final boolean hasTorch = getPackageManager()
                     .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
-            torchButton.setVisibility(hasFlash ? View.VISIBLE : View.GONE);
-            if (hasFlash) {
+            torchButton.setVisibility(hasTorch ? View.VISIBLE : View.GONE);
+            if (hasTorch) {
                 // set the initial state which depends on incoming args
-                setTorchIcon();
+                updateTorchIcon();
                 torchButton.setOnClickListener(v -> {
                     // flip the state
                     torchEnabled = !torchEnabled;
-                    setTorchIcon();
+                    writeSettings();
+                    updateTorchIcon();
                     if (scanner != null) {
                         scanner.setTorch(torchEnabled);
                     }
@@ -230,7 +271,7 @@ public class CaptureActivity
         }
     }
 
-    private void setTorchIcon() {
+    private void updateTorchIcon() {
         // We're not using checkable and StateLists as managing the background
         // color then makes things needlessly complicated.
         // Hence simply swap the icon manually here.
@@ -263,7 +304,12 @@ public class CaptureActivity
     /**
      * Setup the optional hard-timeout and inactivity (soft) timeout.
      */
-    private void initTimeoutHandlers() {
+    private void initTimeoutHandlers(@Nullable final Bundle args) {
+        if (args != null) {
+            inactivityTimeOutInMs = args.getLong(Option.INACTIVITY_TIMEOUT_MS, TIMEOUT_NOT_SET);
+            hardTimeOutInMs = args.getLong(Option.TIMEOUT_MS, TIMEOUT_NOT_SET);
+        }
+
         // unless explicitly disabled,
         if (inactivityTimeOutInMs != 0) {
             // enabled the timer using the default or the specified setting
@@ -290,6 +336,37 @@ public class CaptureActivity
             }, hardTimeOutInMs);
         }
     }
+
+    private void startScanner() {
+        //noinspection DataFlowIssue
+        scanner.start(this, previewView, decoderResultListener);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
+            outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);
+        }
+        if (hardTimeOutInMs > TIMEOUT_NOT_SET) {
+            outState.putLong(Option.TIMEOUT_MS, hardTimeOutInMs);
+        }
+    }
+
+    private void readSettings() {
+        final SharedPreferences p = getPreferences(Context.MODE_PRIVATE);
+        torchEnabled = p.getBoolean(PK_TORCH, false);
+        zoom = p.getFloat(PK_ZOOM, 0.0f);
+    }
+
+    private void writeSettings() {
+        getPreferences(Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(PK_TORCH, torchEnabled)
+                .putFloat(PK_ZOOM, zoom)
+                .apply();
+    }
+
 
     /**
      * Arguments implemented by the default {@link CaptureActivity}.

@@ -6,6 +6,9 @@
     <!-- Optional - a button to switch the torch on/off -->
     <item name="tzw_btn_torch" type="id" />
 
+    <!-- Optional - a Slider to zoom -->
+    <item name="tzw_zoom_slider" type="id" />
+
     <!-- Optional - CaptureActivity view-finder overlay -->
     <item name="tzw_viewfinder_view" type="id" />
     <declare-styleable name="TzwViewfinderView">

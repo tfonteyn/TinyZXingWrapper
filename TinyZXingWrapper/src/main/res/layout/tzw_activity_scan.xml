@@ -76,6 +76,18 @@
             />
     </FrameLayout>
 
+    <com.google.android.material.slider.Slider
+        android:id="@id/tzw_zoom_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:value="0.0"
+        android:valueFrom="0.0"
+        android:valueTo="1.0"
+        app:labelBehavior="gone"
+        app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
+        app:layout_constraintStart_toStartOf="@id/tzw_frame_preview"
+        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview" />
+
     <TextView
         android:id="@id/tzw_status_view"
         android:layout_width="0dp"
@@ -86,7 +98,7 @@
         android:textColor="?attr/tzw_status_text_color"
         app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
         app:layout_constraintStart_toStartOf="@id/tzw_frame_preview"
-        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview"
+        app:layout_constraintTop_toBottomOf="@id/tzw_zoom_slider"
         tools:ignore="SelectableText"
         tools:text="@string/tzw_status_text" />
 </androidx.constraintlayout.widget.ConstraintLayout>
