@@ -42,8 +42,8 @@ android {
 
     defaultConfig {
         applicationId = "com.hardbacknutter.tinyzxingwrapper.example"
-        versionCode = 8
-        versionName = "1.2.0-beta5"
+        versionCode = 9
+        versionName = "1.3.0"
 
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
