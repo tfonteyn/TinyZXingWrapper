@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 16:9:... gives 320/180 but we like the torch button to
-         overlay the view to add to the vertical: 24 for the icon,
-         ignore the icon margins... -->
+    <!-- 16:9 because w had to choose something. Too many different camera's out there. -->
     <dimen name="tzw_preview_width">320dp</dimen>
-    <dimen name="tzw_preview_height">204dp</dimen>
+    <dimen name="tzw_preview_height">180dp</dimen>
 
     <dimen name="tzw_preview_margin_top">16dp</dimen>
 

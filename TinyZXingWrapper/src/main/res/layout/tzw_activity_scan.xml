@@ -62,18 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- icon: see java code -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@id/tzw_btn_torch"
-            style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/tzw_preview_torch_margin"
-            android:visibility="gone"
-            app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
-            tools:visibility="visible"
-            />
+
     </FrameLayout>
 
     <com.google.android.material.slider.Slider
@@ -83,10 +72,27 @@
         android:value="0.0"
         android:valueFrom="0.0"
         android:valueTo="1.0"
+        android:visibility="gone"
         app:labelBehavior="gone"
-        app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
+        app:layout_constraintEnd_toStartOf="@id/tzw_btn_torch"
         app:layout_constraintStart_toStartOf="@id/tzw_frame_preview"
-        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview" />
+        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview"
+        tools:visibility="visible"
+        />
+
+    <!-- icon: see java code -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@id/tzw_btn_torch"
+        style="@style/Widget.Material3.Button.IconButton.Filled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/tzw_preview_torch_margin"
+        android:visibility="gone"
+        app:icon="@drawable/tzw_ic_baseline_flashlight_on_24"
+        app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
+        app:layout_constraintTop_toBottomOf="@id/tzw_frame_preview"
+        tools:visibility="visible"
+        />
 
     <TextView
         android:id="@id/tzw_status_view"
@@ -96,7 +102,7 @@
         android:background="?attr/tzw_status_text_background"
         android:maxLines="4"
         android:textColor="?attr/tzw_status_text_color"
-        app:layout_constraintEnd_toEndOf="@id/tzw_frame_preview"
+        app:layout_constraintEnd_toStartOf="@id/tzw_btn_torch"
         app:layout_constraintStart_toStartOf="@id/tzw_frame_preview"
         app:layout_constraintTop_toBottomOf="@id/tzw_zoom_slider"
         tools:ignore="SelectableText"
