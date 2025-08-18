@@ -3,6 +3,7 @@
 
     <!-- as set on the default CaptureActivity. -->
     <style name="tzw_Theme.CaptureActivity" parent="tzw_Base.Theme.CaptureActivity">
+        <item name="tzw_capture_activity_background">@color/tzw_capture_activity_background_default</item>
         <item name="tzw_status_text_color">@color/tzw_status_text_day</item>
         <item name="tzw_status_text_background">@android:color/transparent</item>
     </style>

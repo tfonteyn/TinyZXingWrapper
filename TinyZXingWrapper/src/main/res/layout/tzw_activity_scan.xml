@@ -27,6 +27,7 @@
     android:id="@+id/capture_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/tzw_capture_activity_background"
     tools:context="com.hardbacknutter.tinyzxingwrapper.CaptureActivity">
 
     <FrameLayout
@@ -43,14 +44,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:keepScreenOn="true"
-            app:scaleType="fillCenter"
-            app:implementationMode="compatible" />
+            app:implementationMode="compatible"
+            app:scaleType="fillCenter" />
 
         <!-- custom attributes (with their defaults) which can be overridden:
-        app:tzw_enable_laser="true"
-        app:tzw_laser_color="?attr/tzw_laser_color"
-        app:tzw_enable_result_points="true"
-        app:tzw_result_points_color="?attr/tzw_result_points_color"
+            app:tzw_enable_laser="true"
+            app:tzw_laser_color="?attr/tzw_laser_color"
+            app:tzw_enable_result_points="true"
+            app:tzw_result_points_color="?attr/tzw_result_points_color"
 
         If both laser and result-points are disable, this view displays nothing.
 

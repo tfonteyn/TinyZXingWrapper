@@ -14,16 +14,22 @@
         <attr name="tzw_laser_color" format="color|reference" />
         <attr name="tzw_enable_laser" format="boolean" />
     </declare-styleable>
-    <!-- defaults for TzwViewfinderView;  used for both day and night. -->
+    <!-- default for TzwViewfinderView/tzw_result_points_color;  used for both day and night. -->
     <color name="tzw_result_point">#c0ffbd21</color>
+    <!-- default for TzwViewfinderView/tzw_laser_color;  used for both day and night. -->
     <color name="tzw_laser">#ffcc0000</color>
 
     <!-- Optional - CaptureActivity TextView prompt/status. -->
     <item name="tzw_status_view" type="id" />
+    <!-- default: transparent -->
     <attr name="tzw_status_text_background" format="color|reference" />
     <attr name="tzw_status_text_color" format="color|reference" />
     <!-- defaults for tzw_status_text_color -->
     <color name="tzw_status_text_day">#FF36BFFB</color>
     <color name="tzw_status_text_night">#FF00B0FF</color>
 
+    <!-- Root view background -->
+    <attr name="tzw_capture_activity_background" format="color|reference" />
+    <!-- default for tzw_capture_activity_background;  used for both day and night. -->
+    <color name="tzw_capture_activity_background_default">#ee000000</color>
 </resources>
