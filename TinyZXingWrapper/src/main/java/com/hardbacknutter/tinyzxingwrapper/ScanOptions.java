@@ -170,6 +170,26 @@ public class ScanOptions {
         return this;
     }
 
+    /**
+     * Targets {@link CaptureActivity}.
+     * <p>
+     * Show the zoom-control-slider on the capture screen. By default hidden.
+     *
+     * @param enabled {@code true} to show
+     *
+     * @return this
+     *
+     * @see CaptureActivity.Option#SHOW_ZOOM
+     */
+    @NonNull
+    public ScanOptions setShowZoomControl(final boolean enabled) {
+        if (enabled) {
+            intent.putExtra(CaptureActivity.Option.SHOW_ZOOM, true);
+        } else {
+            intent.removeExtra(CaptureActivity.Option.SHOW_ZOOM);
+        }
+        return this;
+    }
 
     /**
      * Targets {@link CaptureActivity}.

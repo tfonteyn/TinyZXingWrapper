@@ -6,9 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -74,7 +71,7 @@ public class CaptureActivity
     /** Allows changing while scanning. */
     private boolean torchEnabled;
     /** Allows changing while scanning. */
-    private float zoom;
+    private float zoomValue = 0.3f;
 
     private BarcodeScanner scanner;
 
@@ -134,12 +131,13 @@ public class CaptureActivity
         previewView = Objects.requireNonNull(findViewById(R.id.tzw_preview),
                                              "Missing R.id.tzw_preview");
 
-        Bundle args = getIntent().getExtras();
-        initScanner(args);
-        initZoom();
-        initTorchButton();
+        @Nullable
+        final Bundle args = getIntent().getExtras();
 
-        args = savedInstanceState != null ? savedInstanceState : args;
+        readSettings(args);
+        initScanner(args);
+        initZoomSlider(args);
+        initTorchButton();
         initStatusText(args);
         initTimeoutHandlers(args);
 
@@ -193,26 +191,28 @@ public class CaptureActivity
 
         scanner = builder.build(this);
 
-        readSettings();
         scanner.setTorch(torchEnabled);
-        scanner.setLinearZoom(zoom);
+        scanner.setLinearZoom(zoomValue);
 
         getLifecycle().addObserver(scanner);
     }
 
-    private void initZoom() {
+    private void initZoomSlider(@Nullable final Bundle args) {
         final Slider sliderView = findViewById(R.id.tzw_zoom_slider);
         if (sliderView != null) {
+            final boolean wantZoom = args == null || args.getBoolean(Option.SHOW_ZOOM, true);
             final boolean hasZoom = scanner.hasZoom(this);
-            sliderView.setVisibility(hasZoom ? View.VISIBLE : View.GONE);
-            if (hasZoom) {
-                sliderView.setValue(zoom);
-                sliderView.addOnChangeListener((slider, zoomValue, fromUser) -> {
+
+            final boolean showZoom = wantZoom && hasZoom;
+            sliderView.setVisibility(showZoom ? View.VISIBLE : View.GONE);
+            if (showZoom) {
+                sliderView.setValue(zoomValue);
+                sliderView.addOnChangeListener((slider, value, fromUser) -> {
                     if (fromUser) {
-                        zoom = zoomValue;
+                        this.zoomValue = value;
                         writeSettings();
                         //noinspection DataFlowIssue
-                        scanner.setLinearZoom(zoom);
+                        scanner.setLinearZoom(this.zoomValue);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                             slider.performHapticFeedback(
                                     HapticFeedbackConstants.SEGMENT_FREQUENT_TICK);
@@ -312,42 +312,44 @@ public class CaptureActivity
         }
     }
 
+    // @RequiresPermission(Manifest.permission.CAMERA)
     private void startScanner() {
         //noinspection DataFlowIssue
         scanner.start(this, previewView, decoderResultListener);
     }
 
-    @Override
-    protected void onSaveInstanceState(@NonNull final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (inactivityTimeOutInMs > TIMEOUT_NOT_SET) {
-            outState.putLong(Option.INACTIVITY_TIMEOUT_MS, inactivityTimeOutInMs);
-        }
-        if (hardTimeOutInMs > TIMEOUT_NOT_SET) {
-            outState.putLong(Option.TIMEOUT_MS, hardTimeOutInMs);
-        }
-    }
-
-    private void readSettings() {
+    private void readSettings(@Nullable final Bundle args) {
         final SharedPreferences p = getPreferences(Context.MODE_PRIVATE);
         torchEnabled = p.getBoolean(PK_TORCH, false);
-        zoom = p.getFloat(PK_ZOOM, 0.0f);
+        zoomValue = p.getFloat(PK_ZOOM, zoomValue);
     }
 
+    /**
+     * Store the torch and zoom-value.
+     * Called each time one of them is changed by the user.
+     */
     private void writeSettings() {
         getPreferences(Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(PK_TORCH, torchEnabled)
-                .putFloat(PK_ZOOM, zoom)
+                .putFloat(PK_ZOOM, zoomValue)
                 .apply();
     }
-
 
     /**
      * Arguments implemented by the default {@link CaptureActivity}.
      */
     @SuppressWarnings("WeakerAccess")
     public static final class Option {
+
+        /**
+         * Should the zoom-control slider be shown.
+         * <p>
+         * Default: show the slider
+         * <p>
+         * Type: boolean, use {@code false} to hide.
+         */
+        public static final String SHOW_ZOOM = "SHOW_ZOOM";
 
         /**
          * Prompt to show while scanning. Set to {@code ""} for none.
