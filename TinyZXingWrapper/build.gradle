@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias libs.plugins.android.library
-    alias libs.plugins.android.kotlin
 }
 
 /*
@@ -25,12 +24,15 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.toolChain)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.toolchain.get())
     }
 }
 
+/* https://kotlinlang.org/docs/gradle.html */
 kotlin {
-    jvmToolchain rootProject.ext.toolChain
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.toolchain.get()))
+    }
     compilerOptions {
         jvmTarget = JvmTarget.JVM_11
     }
@@ -40,11 +42,15 @@ ext {
     tinyZXingWrapperVersion = rootProject.ext.versionName
 }
 
+base {
+    archivesName = "${project.name}-${rootProject.ext.versionName}"
+}
+
 android {
     namespace = "com.hardbacknutter.tinyzxingwrapper"
-    compileSdk = rootProject.ext.compileSdkVersion
+    compileSdk = libs.versions.compileSdk.get().toInteger()
 
-    resourcePrefix("tzw_")
+    resourcePrefix = "tzw_"
 
     signingConfigs {
         release {
@@ -56,8 +62,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
+        minSdk = libs.versions.minSdk.get().toInteger()
 
         signingConfig = signingConfigs.release
 
@@ -75,26 +80,26 @@ android {
                     "proguard-rules.pro")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_17
-
-        coreLibraryDesugaringEnabled = true
-    }
 
     buildFeatures {
         buildConfig = true
     }
 
-    lint {
-        abortOnError = false
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+
+        coreLibraryDesugaringEnabled = true
     }
 
-    libraryVariants.configureEach {
-        final variant ->
-            variant.outputs.configureEach {
-                outputFileName = "${project.name}-${variant.name}-${tinyZXingWrapperVersion}.aar"
-            }
+    testOptions {
+        targetSdk = libs.versions.targetSdk.get().toInteger()
+    }
+
+    lint {
+        // allow command line builds to complete
+        abortOnError = false
+        targetSdk = libs.versions.targetSdk.get().toInteger()
     }
 }
 
@@ -117,30 +122,55 @@ dependencies {
     implementation(libs.google.material)
 }
 
-tasks.register("javadocGenerate", Javadoc) {
+final def javadocTask = tasks.register("javadocGenerate", Javadoc) {
     description = "Generates Javadoc for the TinyZXingWrapper library"
-    source = project.android.sourceSets.main.java.srcDirs
+    group = "documentation"
+    source = android.sourceSets.main.java.srcDirs
+
+    // Use the legacy 'destinationDir' property
+    destinationDir = layout.buildDirectory.dir("outputs/javadoc").get().asFile
+
     options {
         setMemberLevel(JavadocMemberLevel.PUBLIC)
         links("https://developer.android.com/reference/")
+        encoding = "UTF-8"
+        addStringOption('Xdoclint:none', '-quiet')
     }
-    // android.jar
-    classpath += project.files(project.android.getBootClasspath())
-    // androidx (and other) dependencies
-    classpath += files(android.libraryVariants.collect { final variant ->
-        variant.getJavaCompileProvider().get().classpath.files
-    })
     failOnError = false
 }
 
 tasks.register('javadocJar', Jar) {
     description = "Creates a Javadoc Jar for the TinyZXingWrapper library." +
             "The result can be found in 'build/outputs/docs/"
-    dependsOn javadocGenerate
-    from javadocGenerate.destinationDir
+    group = "documentation"
+    dependsOn javadocTask
+
+    // Bridge the File to a Provider for the Jar task
+    from javadocTask.map { it.destinationDir }
+
     // create a subfolder in the jar for all the html files
     into("docs")
     // Where to store the jar file
     destinationDirectory = project.layout.buildDirectory.dir("outputs/docs")
     archiveFileName = "${project.name}-javadocs-${tinyZXingWrapperVersion}.jar"
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { final variant ->
+        javadocTask.configure {
+            // Get the SDK provider inside the variant block
+            final def sdkFiles = androidComponents.sdkComponents.bootClasspath
+
+            // Reconstruct the classpath
+            classpath = project.files(sdkFiles)
+            classpath += variant.compileConfiguration.incoming.artifactView {}.files
+        }
+    }
+}
+
+// Whenever a release build is done, trigger the Javadoc task.
+tasks.configureEach { final task ->
+    if (task.name == "assembleRelease") {
+        task.finalizedBy(javadocJar)
+    }
 }

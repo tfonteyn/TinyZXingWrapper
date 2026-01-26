@@ -1,6 +1,5 @@
 plugins {
     alias libs.plugins.android.application
-    alias libs.plugins.android.kotlin
 }
 
 /*
@@ -23,13 +22,13 @@ if (project.hasProperty("TinyZXingWrapper.properties")) {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.toolChain)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.toolchain.get())
     }
 }
 
 android {
     namespace = "com.hardbacknutter.tinyzxingwrapper.example"
-    compileSdk = rootProject.ext.compileSdkVersion
+    compileSdk = libs.versions.compileSdk.get().toInteger()
 
     signingConfigs {
         release {
@@ -45,8 +44,8 @@ android {
         versionCode = rootProject.ext.exampleAppVersionCode
         versionName = rootProject.ext.versionName
 
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
+        minSdk = libs.versions.minSdk.get().toInteger()
+        targetSdk = libs.versions.targetSdk.get().toInteger()
 
         signingConfig = signingConfigs.release
 
@@ -60,16 +59,17 @@ android {
                     "proguard-rules.pro")
         }
     }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
 
         coreLibraryDesugaringEnabled = true
-    }
-
-    buildFeatures {
-        viewBinding = true
-        buildConfig = true
     }
 
     lint {
