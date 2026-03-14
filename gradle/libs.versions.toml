@@ -8,10 +8,10 @@ compileSdk = "36"
 # JDK used by Gradle
 java-toolchain = "21"
 
-androidGradlePlugin = "9.0.0"
+androidGradlePlugin = "9.1.0"
 
-androidxActivity = "1.12.2"
-androidxCamerax = "1.5.2"
+androidxActivity = "1.13.0"
+androidxCamerax = "1.5.3"
 androidxFragment = "1.8.9"
 androidxLifecycle = "2.10.0"
 
