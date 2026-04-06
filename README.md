@@ -20,7 +20,7 @@ Add a repository:
         }
         patternLayout {
             artifact "/[module]/releases/download/v[revision]/"
-                     +"[module]-[classifier]-[revision].[ext]"
+                     +"[module]-[revision]-[classifier].[ext]"
         }
     }
 
