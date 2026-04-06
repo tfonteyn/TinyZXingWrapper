@@ -8,7 +8,7 @@ A tiny android wrapper for the ZXing barcode scanner library (https://github.com
 ### Device support:
 - Requires minimal Android 8.0 (API 26)
 - Supported/tested up to Android 16 (API 36).
-- Compiled against ZXing core 3.5.3
+- Compiled against ZXing core 3.5.4
 
 ### Usage:
 Add a repository:
@@ -30,7 +30,8 @@ Gradle dependency string:
 
 ### History (Library only)
 
-- 1.3.0: performance improvements, zoom and auto-focus support
+- 1.3.1: expose extra arguments for the zoom control
+- 1.3.0: performance improvements, zoom and autofocus support
 - 1.2.0: beta/test builds
 - 1.1.0: bugfix for DecodeHintType.POSSIBLE_FORMATS
 - 1.0.1: translations added, no lib code changes
