@@ -11,7 +11,7 @@ java-toolchain = "21"
 androidGradlePlugin = "9.2.1"
 
 androidxActivity = "1.13.0"
-androidxCamerax = "1.6.0"
+androidxCamerax = "1.6.1"
 androidxFragment = "1.8.9"
 androidxLifecycle = "2.10.0"
 
