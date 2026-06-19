@@ -13,13 +13,13 @@ androidGradlePlugin = "9.2.1"
 androidxActivity = "1.13.0"
 androidxCamerax = "1.6.1"
 androidxFragment = "1.8.9"
-androidxLifecycle = "2.10.0"
+androidxLifecycle = "2.11.0"
 
 # https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
 desugar = "2.1.5"
 
 # https://github.com/material-components/material-components-android/releases
-material = '1.13.0'
+material = "1.14.0"
 
 # https://github.com/zxing/zxing
 zxingCore = '3.5.4'
