@@ -7,7 +7,7 @@ A tiny android wrapper for the ZXing barcode scanner library (https://github.com
 
 ### Device support:
 - Requires minimal Android 8.0 (API 26)
-- Supported/tested up to Android 16 (API 36).
+- Supported/tested up to Android 17 (API 37).
 - Compiled against ZXing core 3.5.4
 
 ### Usage:
@@ -26,10 +26,11 @@ Add a repository:
 
 Gradle dependency string:
 
-    com.hardbacknutter.tinyzxingwrapper:TinyZXingWrapper:1.3.0:release@aar
+    com.hardbacknutter.tinyzxingwrapper:TinyZXingWrapper:1.4.0:release@aar
 
 ### History (Library only)
 
+- 1.4.0: Adds convenience methods to the intent parser to get price and issue number if available
 - 1.3.1: expose extra arguments for the zoom control
 - 1.3.0: performance improvements, zoom and autofocus support
 - 1.2.0: beta/test builds
