@@ -95,6 +95,8 @@ public final class ScanIntentResult {
                     .forEach(entry -> {
                         final ResultMetadataType type = entry.getKey();
                         switch (type) {
+                            case ERRORS_CORRECTED:
+                            case ERASURES_CORRECTED:
                             case ORIENTATION:
                             case ISSUE_NUMBER: {
                                 intent.putExtra(type.name(), (int) entry.getValue());
