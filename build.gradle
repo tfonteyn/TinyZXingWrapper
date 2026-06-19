@@ -9,7 +9,7 @@ tasks.register("clean", Delete) {
 
 ext {
     // Version name for both library and example-app
-    versionName = "1.4.0"
+    versionName = "1.4.1"
     // Only used for the example app
-    exampleAppVersionCode = 11
+    exampleAppVersionCode = 12
 }
