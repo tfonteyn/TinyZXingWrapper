@@ -84,7 +84,7 @@ public class BarcodeScanner
 
     /**
      * Default is {@code null} which lets the device decide.
-     * Otherwise one of {@link CameraSelector#LENS_FACING_FRONT} or
+     * Otherwise, one of {@link CameraSelector#LENS_FACING_FRONT} or
      * {@link CameraSelector#LENS_FACING_BACK}
      */
     @Nullable
@@ -125,7 +125,7 @@ public class BarcodeScanner
      * <p>
      * Takes effect immediately.
      * <p>
-     * By default disabled.
+     * By default, disabled.
      *
      * @param enable {@code true} to enable
      */

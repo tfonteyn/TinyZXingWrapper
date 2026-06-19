@@ -46,7 +46,7 @@ public final class ScanIntentResult {
 
     /**
      * Decode an intent as received by {@link ScanContract#parseResult(int, Intent)}
-     * into a user friendly value object {@link ScanIntentResult}.
+     * into a user-friendly value object {@link ScanIntentResult}.
      *
      * @param resultCode from {@link ScanContract#parseResult(int, Intent)}
      * @param intent     from {@link ScanContract#parseResult(int, Intent)}

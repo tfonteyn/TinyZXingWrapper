@@ -60,7 +60,7 @@ public class ScanOptions {
     /**
      * Targets {@link BarcodeScanner}.
      * <p>
-     * Enable auto-focus. By default disabled (i.e. left to the device to decide).
+     * Enable autofocus. By default, disabled (i.e. left to the device to decide).
      *
      * @param enable {@code true} to enable
      *
@@ -77,7 +77,7 @@ public class ScanOptions {
     /**
      * Targets {@link BarcodeScanner}.
      * <p>
-     * Request extra/available meta data to be returned.
+     * Request extra/available metadata to be returned.
      *
      * @param list of {@link ResultMetadataType} to return if possible
      *
@@ -173,7 +173,7 @@ public class ScanOptions {
     /**
      * Targets {@link CaptureActivity}.
      * <p>
-     * Show the zoom-control-slider on the capture screen. By default hidden.
+     * Show the zoom-control-slider on the capture screen. By default, hidden.
      *
      * @param enabled {@code true} to show
      *
@@ -312,7 +312,7 @@ public class ScanOptions {
      * Arguments implemented by the standalone {@link BarcodeScanner}.
      * <p>
      * Other than the keys in this class, you can also pass in any keys as defined
-     * in {@link DecodeHintType} with the exception of
+     * in {@link DecodeHintType} except
      * {@link DecodeHintType#NEED_RESULT_POINT_CALLBACK} which is used internally.
      */
     public static final class Option {
@@ -331,7 +331,7 @@ public class ScanOptions {
         public static final String CAMERA_LENS_FACING = "CAMERA_LENS_FACING";
 
         /**
-         * Enable auto-focus to the center of the preview.
+         * Enable autofocus to the centre of the preview.
          * <p>
          * Type: boolean
          * <p>
