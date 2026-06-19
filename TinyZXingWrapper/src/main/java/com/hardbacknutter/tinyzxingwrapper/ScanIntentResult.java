@@ -145,6 +145,7 @@ public final class ScanIntentResult {
 
     /**
      * The scan is considered successful if we have a barcode text.
+     * All other info is optional and may be missing.
      *
      * @return {@code true} if {@link #getText()} will return a valid barcode.
      */
@@ -171,9 +172,8 @@ public final class ScanIntentResult {
      */
     @Nullable
     public BarcodeFormat getFormat() {
-        if (success) {
+        if (success && intent != null) {
             try {
-                //noinspection DataFlowIssue
                 return BarcodeFormat.valueOf(intent.getStringExtra(Success.BARCODE_FORMAT));
             } catch (@NonNull final IllegalArgumentException | NullPointerException ignore) {
                 // ignore
@@ -185,15 +185,47 @@ public final class ScanIntentResult {
     /**
      * If {@link #isSuccess()}, returns the UPC EAN extension of the barcode.
      *
-     * @return (non - blank) text of UPC EAN extension or {@code null} if none found
+     * @return text (non-blank) of UPC EAN extension or {@code null} if none found
      */
     @Nullable
     public String getUpcEanExtension() {
-        if (success) {
-            //noinspection DataFlowIssue
+        if (success && intent != null) {
             final String text = intent.getStringExtra(ResultMetadataType.UPC_EAN_EXTENSION.name());
             if (text != null && !text.isBlank()) {
                 return text;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * If {@link #isSuccess()}, returns the suggested price from the metadata.
+     *
+     * @return suggested price (non-blank) or {@code null} if none found
+     */
+    @Nullable
+    public String getSuggestedPrice() {
+        if (success && intent != null) {
+            final String text = intent.getStringExtra(ResultMetadataType.SUGGESTED_PRICE.name());
+            if (text != null && !text.isBlank()) {
+                return text;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * If {@link #isSuccess()}, returns the issue number from the metadata.
+     *
+     * @return issue number or {@code null} if none found
+     */
+    @Nullable
+    public Integer getIssueNumber() {
+        if (success && intent != null) {
+            final int issue = intent.getIntExtra(ResultMetadataType.ISSUE_NUMBER.name(),
+                                                   Integer.MIN_VALUE);
+            if (issue != Integer.MIN_VALUE) {
+                return issue;
             }
         }
         return null;
@@ -218,7 +250,6 @@ public final class ScanIntentResult {
         return resultCode;
     }
 
-
     /**
      * Failure.
      * <p>
@@ -230,7 +261,7 @@ public final class ScanIntentResult {
      * Do <strong>NOT</strong> rely on the generic exception message however,
      * it's only meant for logging/debug purposes!
      *
-     * @return the reason code or {@code null} if there is none
+     * @return the failure code or {@code null} if there is none
      */
     @Nullable
     public String getFailure() {
