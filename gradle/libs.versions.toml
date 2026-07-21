@@ -6,7 +6,7 @@ targetSdk = "37"
 compileSdk = "37"
 
 # JDK used by Gradle
-java-toolchain = "21"
+java-toolchain = "25"
 
 androidGradlePlugin = "9.2.1"
 
